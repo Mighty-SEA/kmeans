@@ -37,13 +37,23 @@ class StatisticController extends Controller
 
         // Gabungkan hasil cluster dengan data asli
         $result = [];
+        $scatterData = [];
         foreach ($data as $i => $row) {
             $result[$labels[$i]][] = $row;
+            $scatterData[] = [
+                'usia' => (float) $row->usia,
+                'jumlah_anak' => (float) $row->jumlah_anak,
+                'kelayakan_rumah' => is_numeric($row->kelayakan_rumah) ? (float) $row->kelayakan_rumah : (float) preg_replace('/[^0-9.]/', '', $row->kelayakan_rumah),
+                'pendapatan' => (float) $row->pendapatan_perbulan,
+                'cluster' => (int) $labels[$i],
+                'nama' => $row->nama,
+            ];
         }
 
         return view('penerima.statistic', [
             'clusters' => $result,
-            'message' => null
+            'message' => null,
+            'scatterData' => $scatterData
         ]);
     }
 

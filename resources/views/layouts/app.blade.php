@@ -23,5 +23,7 @@
     <footer class="bg-white text-center py-4 text-xs text-[#706f6c] border-t mt-8">
         &copy; {{ date('Y') }} Aplikasi Penerima Bantuan. Dibuat dengan <span class="text-[#f53003]">&#10084;</span>.
     </footer>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    @stack('scripts')
 </body>
 </html> 

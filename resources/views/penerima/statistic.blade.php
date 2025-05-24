@@ -6,6 +6,27 @@
     @if($message)
         <div class="bg-yellow-200 text-yellow-800 p-4 rounded mb-4 text-center">{{ $message }}</div>
     @else
+        <div class="mb-8">
+            <div class="flex flex-wrap gap-4 items-center mb-4">
+                <label for="xAxis" class="font-medium">Sumbu X:</label>
+                <select id="xAxis" class="border rounded px-2 py-1">
+                    <option value="usia">Usia</option>
+                    <option value="jumlah_anak">Jumlah Anak</option>
+                    <option value="kelayakan_rumah">Kelayakan Rumah</option>
+                    <option value="pendapatan">Pendapatan</option>
+                    <option value="cluster">Cluster</option>
+                </select>
+                <label for="yAxis" class="font-medium ml-4">Sumbu Y:</label>
+                <select id="yAxis" class="border rounded px-2 py-1">
+                    <option value="pendapatan">Pendapatan</option>
+                    <option value="usia">Usia</option>
+                    <option value="jumlah_anak">Jumlah Anak</option>
+                    <option value="kelayakan_rumah">Kelayakan Rumah</option>
+                    <option value="cluster">Cluster</option>
+                </select>
+            </div>
+            <canvas id="scatterChart" height="120"></canvas>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @foreach($clusters as $key => $cluster)
                 <div class="bg-white shadow rounded p-4">
@@ -41,4 +62,63 @@
         </div>
     @endif
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const scatterData = @json($scatterData);
+    const colors = ['#f87171', '#60a5fa', '#34d399'];
+    const fieldLabels = {
+        usia: 'Usia',
+        jumlah_anak: 'Jumlah Anak',
+        kelayakan_rumah: 'Kelayakan Rumah',
+        pendapatan: 'Pendapatan',
+        cluster: 'Cluster',
+    };
+    function getDatasets(xField, yField) {
+        return [0,1,2].map(cluster => ({
+            label: 'Cluster ' + (cluster+1),
+            data: scatterData.filter(d => d.cluster === cluster).map(d => ({
+                x: Number(d[xField]),
+                y: Number(d[yField]),
+                nama: d.nama
+            })),
+            backgroundColor: colors[cluster],
+        }));
+    }
+    let xField = document.getElementById('xAxis').value;
+    let yField = document.getElementById('yAxis').value;
+    const ctx = document.getElementById('scatterChart').getContext('2d');
+    let chart = new Chart(ctx, {
+        type: 'scatter',
+        data: { datasets: getDatasets(xField, yField) },
+        options: {
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            const d = context.raw;
+                            return d.nama + ' (' + fieldLabels[xField] + ': ' + d.x + ', ' + fieldLabels[yField] + ': ' + d.y + ')';
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { title: { display: true, text: fieldLabels[xField] } },
+                y: { title: { display: true, text: fieldLabels[yField] }, beginAtZero: true }
+            }
+        }
+    });
+    document.getElementById('xAxis').addEventListener('change', function() {
+        xField = this.value;
+        chart.data.datasets = getDatasets(xField, yField);
+        chart.options.scales.x.title.text = fieldLabels[xField];
+        chart.update();
+    });
+    document.getElementById('yAxis').addEventListener('change', function() {
+        yField = this.value;
+        chart.data.datasets = getDatasets(xField, yField);
+        chart.options.scales.y.title.text = fieldLabels[yField];
+        chart.update();
+    });
+});
+</script>
 @endsection
