@@ -9,3 +9,4 @@ Route::get('/', [PenerimaController::class, 'index']);
 Route::resource('penerima', App\Http\Controllers\PenerimaController::class);
 Route::get('/statistic', [StatisticController::class, 'index'])->name('statistic.index');
 Route::get('/statistic/cluster/{cluster}', [App\Http\Controllers\StatisticController::class, 'showCluster'])->name('statistic.cluster');
+Route::post('/statistic/recalculate', [StatisticController::class, 'recalculate'])->name('statistic.recalculate');

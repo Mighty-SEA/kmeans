@@ -6,6 +6,10 @@
     @if($message)
         <div class="bg-yellow-200 text-yellow-800 p-4 rounded mb-4 text-center">{{ $message }}</div>
     @else
+        <form action="{{ route('statistic.recalculate') }}" method="POST" class="mb-4 text-center">
+            @csrf
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded shadow">Hitung Ulang Clustering</button>
+        </form>
         <div class="mb-8">
             <div class="flex flex-wrap gap-4 items-center mb-4">
                 <label for="xAxis" class="font-medium">Sumbu X:</label>
@@ -26,6 +30,51 @@
                 </select>
             </div>
             <canvas id="scatterChart" height="120"></canvas>
+        </div>
+        <div class="mb-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div class="bg-white rounded shadow p-4">
+                <h2 class="text-lg font-semibold mb-2 text-center">Proporsi Anggota per Cluster</h2>
+                <canvas id="pieChart" height="120"></canvas>
+            </div>
+            <div class="bg-white rounded shadow p-4">
+                <h2 class="text-lg font-semibold mb-2 text-center">Rata-rata Fitur per Cluster</h2>
+                <canvas id="barChart" height="120"></canvas>
+            </div>
+        </div>
+        <div class="mb-8 bg-white rounded shadow p-4">
+            <h2 class="text-lg font-semibold mb-4 text-center">Tabel Statistik Ringkasan per Cluster</h2>
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-xs md:text-sm border">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="border px-2 py-1">Cluster</th>
+                            <th class="border px-2 py-1">Fitur</th>
+                            <th class="border px-2 py-1">Min</th>
+                            <th class="border px-2 py-1">Max</th>
+                            <th class="border px-2 py-1">Mean</th>
+                            <th class="border px-2 py-1">Median</th>
+                            <th class="border px-2 py-1">Std</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($clusterStats as $c => $stat)
+                            @foreach(['usia','jumlah_anak','kelayakan_rumah','pendapatan'] as $f)
+                                <tr>
+                                    @if($f === 'usia')
+                                        <td class="border px-2 py-1 text-center" rowspan="4">Cluster {{ $c+1 }}</td>
+                                    @endif
+                                    <td class="border px-2 py-1">{{ ucfirst(str_replace('_',' ',$f)) }}</td>
+                                    <td class="border px-2 py-1 text-right">{{ number_format($stat[$f]['min'],2) }}</td>
+                                    <td class="border px-2 py-1 text-right">{{ number_format($stat[$f]['max'],2) }}</td>
+                                    <td class="border px-2 py-1 text-right">{{ number_format($stat[$f]['mean'],2) }}</td>
+                                    <td class="border px-2 py-1 text-right">{{ number_format($stat[$f]['median'],2) }}</td>
+                                    <td class="border px-2 py-1 text-right">{{ number_format($stat[$f]['std'],2) }}</td>
+                                </tr>
+                            @endforeach
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             @foreach($clusters as $key => $cluster)
@@ -118,6 +167,50 @@ document.addEventListener('DOMContentLoaded', function() {
         chart.data.datasets = getDatasets(xField, yField);
         chart.options.scales.y.title.text = fieldLabels[yField];
         chart.update();
+    });
+
+    // Pie Chart
+    const pieData = @json(array_values($clusterCounts));
+    const pieCtx = document.getElementById('pieChart').getContext('2d');
+    new Chart(pieCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Cluster 1', 'Cluster 2', 'Cluster 3'],
+            datasets: [{
+                data: pieData,
+                backgroundColor: colors,
+            }]
+        },
+        options: {
+            plugins: {
+                legend: { display: true, position: 'bottom' }
+            }
+        }
+    });
+
+    // Bar Chart
+    const barData = @json(array_values($clusterMeans));
+    const barCtx = document.getElementById('barChart').getContext('2d');
+    new Chart(barCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Usia', 'Jumlah Anak', 'Kelayakan Rumah', 'Pendapatan'],
+            datasets: [0,1,2].map(i => ({
+                label: 'Cluster ' + (i+1),
+                data: [barData[i].usia, barData[i].jumlah_anak, barData[i].kelayakan_rumah, barData[i].pendapatan],
+                backgroundColor: colors[i],
+            }))
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: { display: true, position: 'bottom' }
+            },
+            scales: {
+                x: { stacked: true },
+                y: { beginAtZero: true }
+            }
+        }
     });
 });
 </script>
