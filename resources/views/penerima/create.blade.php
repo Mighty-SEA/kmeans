@@ -1,43 +1,92 @@
 @extends('layouts.app')
+
+@section('title', 'Tambah Penerima - Admin Panel')
+@section('header', 'Tambah Penerima')
+
 @section('content')
-<div class="flex items-center justify-center bg-[#FDFDFC] py-4 px-2">
-    <div class="w-full max-w-md bg-white rounded-xl shadow-lg p-4">
-        <h2 class="text-2xl font-bold mb-4 text-[#1b1b18] text-center">Tambah Penerima</h2>
-        <form action="{{ route('penerima.store') }}" method="POST" class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            @csrf
-            <div>
-                <label class="block text-sm font-medium text-[#1b1b18] mb-1">Nama</label>
-                <input type="text" name="nama" class="w-full border border-[#e3e3e0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f53003]" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-[#1b1b18] mb-1">Alamat</label>
-                <input type="text" name="alamat" class="w-full border border-[#e3e3e0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f53003]" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-[#1b1b18] mb-1">No HP</label>
-                <input type="text" name="no_hp" class="w-full border border-[#e3e3e0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f53003]" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-[#1b1b18] mb-1">Usia</label>
-                <input type="number" name="usia" class="w-full border border-[#e3e3e0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f53003]" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-[#1b1b18] mb-1">Jumlah Anak</label>
-                <input type="number" name="jumlah_anak" class="w-full border border-[#e3e3e0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f53003]" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-[#1b1b18] mb-1">Kelayakan Rumah</label>
-                <input type="text" name="kelayakan_rumah" class="w-full border border-[#e3e3e0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f53003]" required>
-            </div>
-            <div>
-                <label class="block text-sm font-medium text-[#1b1b18] mb-1">Pendapatan/Bulan</label>
-                <input type="number" name="pendapatan_perbulan" class="w-full border border-[#e3e3e0] rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[#f53003]" required>
-            </div>
-            <div class="col-span-1 md:col-span-3 flex justify-between mt-4">
-                <a href="{{ route('penerima.index') }}" class="px-3 py-2 rounded-lg bg-gray-200 text-[#1b1b18] hover:bg-gray-300">Batal</a>
-                <button type="submit" class="px-5 py-2 rounded-lg bg-[#f53003] text-white font-semibold hover:bg-[#d41e00]">Simpan</button>
-            </div>
-        </form>
+<div class="bg-white rounded-lg shadow-md p-8 w-full">
+    <div class="mb-8">
+        <h3 class="text-xl font-medium text-gray-700">Form Tambah Penerima Bantuan</h3>
+        <p class="text-sm text-gray-500 mt-1">Silakan lengkapi data penerima bantuan baru</p>
     </div>
+    
+    <form action="{{ route('penerima.store') }}" method="POST">
+        @csrf
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Nama</label>
+                <input type="text" name="nama" value="{{ old('nama') }}" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                @error('nama')
+                    <span class="text-xs text-red-500 mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Alamat</label>
+                <input type="text" name="alamat" value="{{ old('alamat') }}" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                @error('alamat')
+                    <span class="text-xs text-red-500 mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">No HP</label>
+                <input type="text" name="no_hp" value="{{ old('no_hp') }}" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                @error('no_hp')
+                    <span class="text-xs text-red-500 mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Usia</label>
+                <input type="number" name="usia" value="{{ old('usia') }}" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                @error('usia')
+                    <span class="text-xs text-red-500 mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Jumlah Anak</label>
+                <input type="number" name="jumlah_anak" value="{{ old('jumlah_anak') }}" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                @error('jumlah_anak')
+                    <span class="text-xs text-red-500 mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Kelayakan Rumah (1-5)</label>
+                <select name="kelayakan_rumah" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                    <option value="">Pilih Kelayakan</option>
+                    @for($i = 1; $i <= 5; $i++)
+                        <option value="{{ $i }}" {{ old('kelayakan_rumah') == $i ? 'selected' : '' }}>{{ $i }} - {{ $i == 1 ? 'Sangat Tidak Layak' : ($i == 2 ? 'Tidak Layak' : ($i == 3 ? 'Cukup' : ($i == 4 ? 'Layak' : 'Sangat Layak'))) }}</option>
+                    @endfor
+                </select>
+                @error('kelayakan_rumah')
+                    <span class="text-xs text-red-500 mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+            
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-2">Pendapatan Per Bulan</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="text-gray-500">Rp</span>
+                    </div>
+                    <input type="number" name="pendapatan_perbulan" value="{{ old('pendapatan_perbulan') }}" class="w-full border border-gray-300 rounded-lg pl-12 pr-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                @error('pendapatan_perbulan')
+                    <span class="text-xs text-red-500 mt-1">{{ $message }}</span>
+                @enderror
+            </div>
+        </div>
+        
+        <div class="mt-10 flex items-center justify-end space-x-4">
+            <a href="{{ route('penerima.index') }}" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Batal</a>
+            <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center">
+                <i class="fas fa-save mr-2"></i>
+                <span>Simpan Data</span>
+            </button>
+        </div>
+    </form>
 </div>
 @endsection 

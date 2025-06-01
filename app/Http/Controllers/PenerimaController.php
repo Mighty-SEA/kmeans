@@ -3,10 +3,61 @@
 namespace App\Http\Controllers;
 
 use App\Models\Penerima;
+use App\Models\ClusteringResult;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 
 class PenerimaController extends Controller
 {
+    public function dashboard()
+    {
+        // Mengambil total penerima
+        $totalPenerima = Penerima::count();
+        
+        // Mengambil 5 data penerima terbaru
+        $latestData = Penerima::latest()->take(5)->get();
+        
+        // Menambahkan data cluster ke penerima terbaru
+        foreach ($latestData as $penerima) {
+            $clusterResult = ClusteringResult::where('penerima_id', $penerima->id)->first();
+            $penerima->cluster = $clusterResult ? $clusterResult->cluster : null;
+        }
+        
+        // Mengambil distribusi cluster
+        $clusterCounts = ClusteringResult::select('cluster', DB::raw('count(*) as total'))
+            ->groupBy('cluster')
+            ->pluck('total', 'cluster')
+            ->toArray();
+        
+        // Jika belum ada data clustering, buat array kosong
+        if (empty($clusterCounts)) {
+            $clusterCounts = [0 => 0, 1 => 0, 2 => 0];
+        }
+        
+        // Menghitung rata-rata fitur per cluster
+        $clusterMeans = [];
+        for ($i = 0; $i < 3; $i++) {
+            $clusterData = Penerima::join('clustering_results', 'penerima.id', '=', 'clustering_results.penerima_id')
+                ->where('clustering_results.cluster', $i)
+                ->get();
+            
+            $count = $clusterData->count();
+            $clusterMeans[$i] = [
+                'usia' => $count ? $clusterData->avg('usia') : 0,
+                'jumlah_anak' => $count ? $clusterData->avg('jumlah_anak') : 0,
+                'kelayakan_rumah' => $count ? $clusterData->avg('kelayakan_rumah') : 0,
+                'pendapatan' => $count ? $clusterData->avg('pendapatan_perbulan') : 0,
+            ];
+        }
+        
+        return view('welcome', compact(
+            'totalPenerima',
+            'latestData',
+            'clusterCounts',
+            'clusterMeans'
+        ));
+    }
+
     public function index()
     {
         $penerima = Penerima::paginate(10); // 10 data per halaman
