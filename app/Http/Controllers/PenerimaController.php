@@ -6,6 +6,9 @@ use App\Models\Penerima;
 use App\Models\ClusteringResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\PenerimaExport;
+use App\Imports\PenerimaImport;
 
 class PenerimaController extends Controller
 {
@@ -111,5 +114,28 @@ class PenerimaController extends Controller
         $penerima = Penerima::findOrFail($id);
         $penerima->delete();
         return redirect()->route('penerima.index')->with('success', 'Data berhasil dihapus!');
+    }
+
+    public function exportExcel(Request $request)
+    {
+        $columns = $request->input('columns', [
+            'nama',
+            'alamat',
+            'no_hp',
+            'usia',
+            'jumlah_anak',
+            'kelayakan_rumah',
+            'pendapatan_perbulan',
+        ]);
+        return Excel::download(new PenerimaExport($columns), 'penerima.xlsx');
+    }
+
+    public function importExcel(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+        Excel::import(new PenerimaImport, $request->file('file'));
+        return redirect()->route('penerima.index')->with('success', 'Data berhasil diimport!');
     }
 }

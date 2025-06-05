@@ -24,6 +24,49 @@
         </div>
     </div>
     
+    <div class="flex items-center space-x-2 mb-4">
+        <button type="button" onclick="document.getElementById('exportModal').classList.remove('hidden')" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Export Excel</button>
+        <button type="button" onclick="document.getElementById('importModal').classList.remove('hidden')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Import Excel</button>
+    </div>
+    
+    <!-- Modal Export Kolom -->
+    <div id="exportModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+            <h2 class="text-lg font-semibold mb-4">Pilih Kolom yang Akan Diexport</h2>
+            <form action="{{ route('penerima.export') }}" method="POST">
+                @csrf
+                <div class="space-y-2 mb-4">
+                    <label class="flex items-center"><input type="checkbox" name="columns[]" value="nama" checked class="mr-2"> Nama</label>
+                    <label class="flex items-center"><input type="checkbox" name="columns[]" value="alamat" checked class="mr-2"> Alamat</label>
+                    <label class="flex items-center"><input type="checkbox" name="columns[]" value="no_hp" checked class="mr-2"> No HP</label>
+                    <label class="flex items-center"><input type="checkbox" name="columns[]" value="usia" checked class="mr-2"> Usia</label>
+                    <label class="flex items-center"><input type="checkbox" name="columns[]" value="jumlah_anak" checked class="mr-2"> Jumlah Anak</label>
+                    <label class="flex items-center"><input type="checkbox" name="columns[]" value="kelayakan_rumah" checked class="mr-2"> Kelayakan Rumah</label>
+                    <label class="flex items-center"><input type="checkbox" name="columns[]" value="pendapatan_perbulan" checked class="mr-2"> Pendapatan Perbulan</label>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('exportModal').classList.add('hidden')" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Export</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal Import Excel -->
+    <div id="importModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
+            <h2 class="text-lg font-semibold mb-4">Import Data Penerima dari Excel</h2>
+            <form action="{{ route('penerima.import') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+                <input type="file" name="file" class="block w-full border rounded px-2 py-1 text-sm mb-4" required accept=".xlsx,.xls">
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="document.getElementById('importModal').classList.add('hidden')" class="px-4 py-2 bg-gray-300 text-gray-700 rounded hover:bg-gray-400 transition">Batal</button>
+                    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Import</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
     <div class="overflow-x-auto rounded-lg shadow">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">

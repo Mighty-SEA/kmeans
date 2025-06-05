@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('alamat');
             $table->string('no_hp');
             $table->integer('usia');
-            $table->integer('jumlah_anak');
+            $table->integer('jumlah_anak')->nullable();
             $table->tinyInteger('kelayakan_rumah')->comment('Nilai 1-5')->unsigned();
             $table->decimal('pendapatan_perbulan', 12, 2);
             $table->timestamps();
