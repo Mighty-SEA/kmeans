@@ -12,3 +12,4 @@ Route::get('/statistic/cluster/{cluster}', [App\Http\Controllers\StatisticContro
 Route::post('/statistic/recalculate', [StatisticController::class, 'recalculate'])->name('statistic.recalculate');
 Route::post('penerima-export', [App\Http\Controllers\PenerimaController::class, 'exportExcel'])->name('penerima.export');
 Route::post('penerima-import', [App\Http\Controllers\PenerimaController::class, 'importExcel'])->name('penerima.import');
+Route::delete('penerima-bulk-delete', [App\Http\Controllers\PenerimaController::class, 'bulkDelete'])->name('penerima.bulkDelete');

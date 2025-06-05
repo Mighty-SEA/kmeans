@@ -138,4 +138,18 @@ class PenerimaController extends Controller
         Excel::import(new PenerimaImport, $request->file('file'));
         return redirect()->route('penerima.index')->with('success', 'Data berhasil diimport!');
     }
+
+    public function bulkDelete(Request $request)
+    {
+        if ($request->input('select_all') == 1) {
+            Penerima::query()->delete();
+            return redirect()->route('penerima.index')->with('success', 'Semua data berhasil dihapus!');
+        }
+        $ids = $request->input('ids', []);
+        if (!empty($ids)) {
+            Penerima::whereIn('id', $ids)->delete();
+            return redirect()->route('penerima.index')->with('success', 'Data terpilih berhasil dihapus!');
+        }
+        return redirect()->route('penerima.index')->with('success', 'Tidak ada data yang dipilih.');
+    }
 }
