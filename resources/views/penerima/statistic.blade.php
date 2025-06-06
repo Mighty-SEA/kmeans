@@ -38,6 +38,28 @@
                         $bgClass = 'bg-' . $clusterColors[$key] . '-100';
                         $textClass = 'text-' . $clusterColors[$key] . '-600';
                         $borderClass = 'border-' . $clusterColors[$key] . '-500';
+                        
+                        // Silhouette score color
+                        $silhouetteValue = isset($avgSilhouettes[$key]) ? $avgSilhouettes[$key] : 0;
+                        $silhouetteClass = 'text-gray-500';
+                        $silhouetteIcon = 'fa-minus';
+                        
+                        if ($silhouetteValue > 0.7) {
+                            $silhouetteClass = 'text-green-600';
+                            $silhouetteIcon = 'fa-check-circle';
+                        } elseif ($silhouetteValue > 0.5) {
+                            $silhouetteClass = 'text-blue-600';
+                            $silhouetteIcon = 'fa-check';
+                        } elseif ($silhouetteValue > 0.25) {
+                            $silhouetteClass = 'text-yellow-600';
+                            $silhouetteIcon = 'fa-exclamation-circle';
+                        } elseif ($silhouetteValue > 0) {
+                            $silhouetteClass = 'text-orange-600';
+                            $silhouetteIcon = 'fa-exclamation-triangle';
+                        } else {
+                            $silhouetteClass = 'text-red-600';
+                            $silhouetteIcon = 'fa-times-circle';
+                        }
                     @endphp
                     <div class="flex items-center mb-4">
                         <div class="flex items-center justify-center w-12 h-12 rounded-full {{ $bgClass }} {{ $textClass }} mr-4">
@@ -48,6 +70,20 @@
                             <p class="text-sm text-gray-500">{{ $count }} data</p>
                         </div>
                     </div>
+                    
+                    <div class="mb-4">
+                        <div class="flex items-center justify-between mb-1">
+                            <span class="text-xs font-medium text-gray-500">Silhouette Score:</span>
+                            <span class="text-xs font-medium {{ $silhouetteClass }}">
+                                <i class="fas {{ $silhouetteIcon }} mr-1"></i>
+                                {{ number_format($silhouetteValue, 2) }}
+                            </span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-1.5">
+                            <div class="h-1.5 rounded-full {{ $silhouetteValue > 0 ? $bgClass : 'bg-gray-300' }}" style="width: {{ min(max(($silhouetteValue + 1) / 2 * 100, 5), 100) }}%"></div>
+                        </div>
+                    </div>
+                    
                     <div class="border-t border-gray-100 pt-4">
                         <a href="{{ route('statistic.cluster', $key) }}" class="flex items-center justify-center px-4 py-2 rounded bg-gray-50 text-gray-700 hover:bg-gray-100 transition w-full">
                             <i class="fas fa-eye mr-2"></i> Lihat Detail
@@ -55,6 +91,67 @@
                     </div>
                 </div>
                 @endforeach
+            </div>
+            
+            <!-- Overall Silhouette Score -->
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6 mb-8">
+                <h4 class="text-lg font-medium text-gray-800 mb-4">Kualitas Clustering (Silhouette Score)</h4>
+                <div class="mb-2 text-sm text-gray-600">
+                    Silhouette score mengukur seberapa baik data dikelompokkan. Nilai berkisar dari -1 (buruk) hingga 1 (sangat baik).
+                </div>
+                
+                @php
+                    // Overall silhouette color
+                    $overallClass = 'text-gray-500';
+                    $overallText = 'Netral';
+                    
+                    if ($overallSilhouette > 0.7) {
+                        $overallClass = 'text-green-600';
+                        $overallText = 'Sangat Baik';
+                    } elseif ($overallSilhouette > 0.5) {
+                        $overallClass = 'text-blue-600';
+                        $overallText = 'Baik';
+                    } elseif ($overallSilhouette > 0.25) {
+                        $overallClass = 'text-yellow-600';
+                        $overallText = 'Cukup';
+                    } elseif ($overallSilhouette > 0) {
+                        $overallClass = 'text-orange-600';
+                        $overallText = 'Kurang';
+                    } else {
+                        $overallClass = 'text-red-600';
+                        $overallText = 'Buruk';
+                    }
+                @endphp
+                
+                <div class="flex flex-col md:flex-row items-center justify-between">
+                    <div class="flex items-center mb-4 md:mb-0">
+                        <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center {{ $overallClass }} mr-4">
+                            <span class="text-2xl font-bold">{{ number_format($overallSilhouette, 2) }}</span>
+                        </div>
+                        <div>
+                            <p class="text-sm text-gray-500">Rata-rata Silhouette Score</p>
+                            <p class="text-lg font-medium {{ $overallClass }}">{{ $overallText }}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="w-full md:w-2/3">
+                        <div class="h-4 w-full bg-gray-200 rounded-full overflow-hidden">
+                            <div class="h-4 rounded-full 
+                                @if($overallSilhouette > 0.7) bg-green-500
+                                @elseif($overallSilhouette > 0.5) bg-blue-500
+                                @elseif($overallSilhouette > 0.25) bg-yellow-500
+                                @elseif($overallSilhouette > 0) bg-orange-500
+                                @else bg-red-500 @endif"
+                                style="width: {{ min(max(($overallSilhouette + 1) / 2 * 100, 5), 100) }}%">
+                            </div>
+                        </div>
+                        <div class="flex justify-between text-xs text-gray-500 mt-1">
+                            <span>-1.0</span>
+                            <span>0.0</span>
+                            <span>1.0</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             
             <!-- Visualisasi -->
@@ -84,6 +181,7 @@
                             <option value="jumlah_anak">Jumlah Anak</option>
                             <option value="kelayakan_rumah">Kelayakan Rumah</option>
                             <option value="pendapatan">Pendapatan</option>
+                            <option value="silhouette">Silhouette Score</option>
                         </select>
                         
                         <label for="yAxis" class="font-medium text-gray-700 ml-4">Sumbu Y:</label>
@@ -92,6 +190,7 @@
                             <option value="usia">Usia</option>
                             <option value="jumlah_anak">Jumlah Anak</option>
                             <option value="kelayakan_rumah">Kelayakan Rumah</option>
+                            <option value="silhouette">Silhouette Score</option>
                         </select>
                     </div>
                 </div>
@@ -322,16 +421,26 @@ document.addEventListener('DOMContentLoaded', function() {
         jumlah_anak: 'Jumlah Anak',
         kelayakan_rumah: 'Kelayakan Rumah',
         pendapatan: 'Pendapatan',
+        silhouette: 'Silhouette Score',
     };
     
     function getDatasets(xField, yField) {
         return [0,1,2].map(cluster => ({
             label: 'Cluster ' + (cluster+1),
-            data: scatterData.filter(d => d.cluster === cluster).map(d => ({
-                x: Number(d[xField]),
-                y: Number(d[yField]),
-                nama: d.nama
-            })),
+            data: scatterData.filter(d => d.cluster === cluster).map(d => {
+                // Pastikan silhouette tersedia, jika tidak, gunakan 0
+                if (xField === 'silhouette' || yField === 'silhouette') {
+                    if (d.silhouette === undefined) {
+                        d.silhouette = 0;
+                    }
+                }
+                return {
+                    x: Number(d[xField]),
+                    y: Number(d[yField]),
+                    nama: d.nama,
+                    silhouette: d.silhouette
+                };
+            }),
             backgroundColor: colors[cluster],
             borderColor: borderColors[cluster],
             borderWidth: 1,
@@ -354,7 +463,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     callbacks: {
                         label: function(context) {
                             const d = context.raw;
-                            return d.nama + ' (' + fieldLabels[xField] + ': ' + d.x + ', ' + fieldLabels[yField] + ': ' + d.y + ')';
+                            let label = d.nama + ' (' + fieldLabels[xField] + ': ' + d.x + ', ' + fieldLabels[yField] + ': ' + d.y;
+                            
+                            // Tambahkan silhouette score jika tersedia dan belum ditampilkan di sumbu
+                            if (d.silhouette !== undefined && xField !== 'silhouette' && yField !== 'silhouette') {
+                                label += ', Silhouette: ' + d.silhouette.toFixed(2);
+                            }
+                            
+                            return label + ')';
                         }
                     }
                 },
