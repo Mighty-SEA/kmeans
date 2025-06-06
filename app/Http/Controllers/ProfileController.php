@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class ProfileController extends Controller
 {
@@ -53,5 +54,30 @@ class ProfileController extends Controller
             ]);
 
         return redirect()->route('profile.edit')->with('status', 'Password berhasil diperbarui.');
+    }
+
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => ['required', 'image', 'max:2048'], // Maksimal 2MB
+        ]);
+
+        $user = Auth::user();
+
+        // Hapus avatar lama jika ada
+        if ($user->avatar) {
+            Storage::disk('public')->delete($user->avatar);
+        }
+
+        // Simpan avatar baru
+        $path = $request->file('avatar')->store('avatars', 'public');
+
+        DB::table('users')
+            ->where('id', $user->id)
+            ->update([
+                'avatar' => $path,
+            ]);
+
+        return redirect()->route('profile.edit')->with('status', 'Foto profil berhasil diperbarui.');
     }
 } 

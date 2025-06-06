@@ -44,8 +44,12 @@
                     @auth
                     <div class="relative" x-data="{ open: false }" @click.outside="open = false">
                         <button @click="open = !open" class="flex items-center text-white focus:outline-none hover:opacity-80 transition-opacity duration-200">
-                            <span class="h-9 w-9 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-white shadow-inner">
-                                <i class="fas fa-user"></i>
+                            <span class="h-9 w-9 rounded-full bg-white bg-opacity-20 flex items-center justify-center text-white shadow-inner overflow-hidden">
+                                @if(Auth::user()->avatar)
+                                    <img src="{{ Auth::user()->avatar_url }}" alt="{{ Auth::user()->name }}" class="h-full w-full object-cover">
+                                @else
+                                    <i class="fas fa-user"></i>
+                                @endif
                             </span>
                             <span class="ml-2 hidden md:block font-medium">{{ Auth::user()->name }}</span>
                             <i class="fas fa-chevron-down ml-2 text-xs hidden md:block"></i>
