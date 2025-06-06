@@ -16,6 +16,10 @@
                 <div class="mb-4 md:mb-0">
                     <h3 class="text-xl font-medium text-gray-700">Hasil Clustering K-Means</h3>
                     <p class="text-sm text-gray-500 mt-1">Visualisasi dan analisis hasil clustering dengan metode K-Means (3 Cluster)</p>
+                    <div class="mt-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-md text-xs inline-flex items-center">
+                        <i class="fas fa-info-circle mr-1"></i>
+                        <span>Powered by Rubix ML (PHP Machine Learning)</span>
+                    </div>
                 </div>
                 <form action="{{ route('statistic.recalculate') }}" method="POST">
                     @csrf
@@ -99,6 +103,9 @@
             <!-- Statistik Detail -->
             <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                 <h4 class="text-lg font-medium text-gray-800 mb-4">Statistik Detail per Cluster</h4>
+                <div class="text-xs text-gray-500 italic mb-4">
+                    * Semua statistik dihitung menggunakan Rubix ML - Library Machine Learning untuk PHP
+                </div>
                 <div class="overflow-x-auto">
                     <table class="min-w-full border border-gray-200">
                         <thead>
