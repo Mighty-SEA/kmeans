@@ -4,9 +4,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class Penerima extends Model
+class Beneficiary extends Model
 {
-    protected $table = 'penerima';
+    protected $table = 'beneficiaries';
     protected $guarded = ['id'];
     protected $fillable = [
         'nama',
@@ -16,5 +16,6 @@ class Penerima extends Model
         'jumlah_anak',
         'kelayakan_rumah',
         'pendapatan_perbulan',
+        'nik',
     ];
 }

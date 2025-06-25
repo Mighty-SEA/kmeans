@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Penerima;
+use App\Models\Beneficiary;
 use App\Models\ClusteringResult;
 use Illuminate\Http\Request;
 use Rubix\ML\Clusterers\KMeans;
@@ -14,7 +14,7 @@ class StatisticController extends Controller
 {
     public function index()
     {
-        $data = Penerima::all(['id', 'nama', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
+        $data = Beneficiary::all(['id', 'nama', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
         if ($data->count() < 3) {
             return view('penerima.statistic', [
                 'clusters' => [],
@@ -28,16 +28,16 @@ class StatisticController extends Controller
             $result = [0 => [], 1 => [], 2 => []];
             $scatterData = [];
             foreach ($clustering as $row) {
-                $penerima = $data->firstWhere('id', $row->penerima_id);
-                if ($penerima) {
-                    $result[$row->cluster][] = $penerima;
+                $beneficiary = $data->firstWhere('id', $row->beneficiary_id);
+                if ($beneficiary) {
+                    $result[$row->cluster][] = $beneficiary;
                     $scatterData[] = [
-                        'usia' => (float) $penerima->usia,
-                        'jumlah_anak' => (float) $penerima->jumlah_anak,
-                        'kelayakan_rumah' => is_numeric($penerima->kelayakan_rumah) ? (float) $penerima->kelayakan_rumah : (float) preg_replace('/[^0-9.]/', '', $penerima->kelayakan_rumah),
-                        'pendapatan' => (float) $penerima->pendapatan_perbulan,
+                        'usia' => (float) $beneficiary->usia,
+                        'jumlah_anak' => (float) $beneficiary->jumlah_anak,
+                        'kelayakan_rumah' => is_numeric($beneficiary->kelayakan_rumah) ? (float) $beneficiary->kelayakan_rumah : (float) preg_replace('/[^0-9.]/', '', $beneficiary->kelayakan_rumah),
+                        'pendapatan' => (float) $beneficiary->pendapatan_perbulan,
                         'cluster' => (int) $row->cluster,
-                        'nama' => $penerima->nama,
+                        'nama' => $beneficiary->nama,
                         'silhouette' => $row->silhouette,
                     ];
                 }
@@ -74,7 +74,7 @@ class StatisticController extends Controller
                 ];
                 // Simpan ke tabel clustering_results
                 ClusteringResult::updateOrCreate([
-                    'penerima_id' => $row->id
+                    'beneficiary_id' => $row->id
                 ], [
                     'cluster' => $labels[$i],
                     'silhouette' => $silhouetteScores[$i]
@@ -299,7 +299,7 @@ class StatisticController extends Controller
 
     public function showCluster($cluster)
     {
-        $data = Penerima::all(['id', 'nama', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
+        $data = Beneficiary::all(['id', 'nama', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
         if ($data->count() < 3) {
             return redirect()->route('statistic.index')->with('message', 'Data kurang dari 3, tidak bisa melakukan clustering.');
         }
@@ -312,9 +312,9 @@ class StatisticController extends Controller
             $result = [0 => [], 1 => [], 2 => []];
             $silhouettes = [0 => [], 1 => [], 2 => []];
             foreach ($clustering as $row) {
-                $penerima = $data->firstWhere('id', $row->penerima_id);
-                if ($penerima) {
-                    $result[$row->cluster][] = $penerima;
+                $beneficiary = $data->firstWhere('id', $row->beneficiary_id);
+                if ($beneficiary) {
+                    $result[$row->cluster][] = $beneficiary;
                     if ($row->silhouette !== null) {
                         $silhouettes[$row->cluster][] = $row->silhouette;
                     }
@@ -345,7 +345,7 @@ class StatisticController extends Controller
                 
                 // Simpan ke tabel clustering_results
                 ClusteringResult::updateOrCreate([
-                    'penerima_id' => $row->id
+                    'beneficiary_id' => $row->id
                 ], [
                     'cluster' => $labels[$i],
                     'silhouette' => $silhouetteScores[$i]

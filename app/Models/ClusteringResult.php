@@ -7,11 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 class ClusteringResult extends Model
 {
     protected $fillable = [
-        'penerima_id', 'cluster', 'silhouette'
+        'beneficiary_id', 'cluster', 'silhouette'
     ];
 
-    public function penerima()
+    public function beneficiary()
     {
-        return $this->belongsTo(Penerima::class);
+        return $this->belongsTo(Beneficiary::class);
     }
 }

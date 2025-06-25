@@ -13,11 +13,11 @@ return new class extends Migration
     {
         Schema::create('clustering_results', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('penerima_id');
+            $table->unsignedBigInteger('beneficiary_id');
             $table->integer('cluster');
             $table->timestamps();
 
-            $table->foreign('penerima_id')->references('id')->on('penerima')->onDelete('cascade');
+            $table->foreign('beneficiary_id')->references('id')->on('beneficiaries')->onDelete('cascade');
         });
     }
 

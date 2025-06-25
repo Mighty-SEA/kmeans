@@ -2,28 +2,28 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Penerima;
+use App\Models\Beneficiary;
 use App\Models\ClusteringResult;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Maatwebsite\Excel\Facades\Excel;
-use App\Exports\PenerimaExport;
-use App\Imports\PenerimaImport;
+use App\Exports\BeneficiaryExport;
+use App\Imports\BeneficiaryImport;
 
-class PenerimaController extends Controller
+class BeneficiaryController extends Controller
 {
     public function dashboard()
     {
         // Mengambil total penerima
-        $totalPenerima = Penerima::count();
+        $totalPenerima = Beneficiary::count();
         
         // Mengambil 5 data penerima terbaru
-        $latestData = Penerima::latest()->take(5)->get();
+        $latestData = Beneficiary::latest()->take(5)->get();
         
         // Menambahkan data cluster ke penerima terbaru
-        foreach ($latestData as $penerima) {
-            $clusterResult = ClusteringResult::where('penerima_id', $penerima->id)->first();
-            $penerima->cluster = $clusterResult ? $clusterResult->cluster : null;
+        foreach ($latestData as $beneficiary) {
+            $clusterResult = ClusteringResult::where('beneficiary_id', $beneficiary->id)->first();
+            $beneficiary->cluster = $clusterResult ? $clusterResult->cluster : null;
         }
         
         // Mengambil distribusi cluster
@@ -40,7 +40,7 @@ class PenerimaController extends Controller
         // Menghitung rata-rata fitur per cluster
         $clusterMeans = [];
         for ($i = 0; $i < 3; $i++) {
-            $clusterData = Penerima::join('clustering_results', 'penerima.id', '=', 'clustering_results.penerima_id')
+            $clusterData = Beneficiary::join('clustering_results', 'beneficiaries.id', '=', 'clustering_results.beneficiary_id')
                 ->where('clustering_results.cluster', $i)
                 ->get();
             
@@ -63,7 +63,7 @@ class PenerimaController extends Controller
 
     public function index()
     {
-        $penerima = Penerima::paginate(10); // 10 data per halaman
+        $penerima = Beneficiary::paginate(10); // 10 data per halaman
         return view('penerima.indexpenerima', compact('penerima'));
     }
 
@@ -75,6 +75,7 @@ class PenerimaController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
+            'nik' => 'required',
             'nama' => 'required',
             'alamat' => 'required',
             'no_hp' => 'required',
@@ -83,19 +84,20 @@ class PenerimaController extends Controller
             'kelayakan_rumah' => 'required',
             'pendapatan_perbulan' => 'required|numeric',
         ]);
-        Penerima::create($validated);
-        return redirect()->route('penerima.index')->with('success', 'Data berhasil ditambahkan!');
+        Beneficiary::create($validated);
+        return redirect()->route('beneficiary.index')->with('success', 'Data berhasil ditambahkan!');
     }
 
     public function edit($id)
     {
-        $penerima = Penerima::findOrFail($id);
+        $penerima = Beneficiary::findOrFail($id);
         return view('penerima.edit', compact('penerima'));
     }
 
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
+            'nik' => 'required',
             'nama' => 'required',
             'alamat' => 'required',
             'no_hp' => 'required',
@@ -104,21 +106,22 @@ class PenerimaController extends Controller
             'kelayakan_rumah' => 'required',
             'pendapatan_perbulan' => 'required|numeric',
         ]);
-        $penerima = Penerima::findOrFail($id);
+        $penerima = Beneficiary::findOrFail($id);
         $penerima->update($validated);
-        return redirect()->route('penerima.index')->with('success', 'Data berhasil diupdate!');
+        return redirect()->route('beneficiary.index')->with('success', 'Data berhasil diupdate!');
     }
 
     public function destroy($id)
     {
-        $penerima = Penerima::findOrFail($id);
+        $penerima = Beneficiary::findOrFail($id);
         $penerima->delete();
-        return redirect()->route('penerima.index')->with('success', 'Data berhasil dihapus!');
+        return redirect()->route('beneficiary.index')->with('success', 'Data berhasil dihapus!');
     }
 
     public function exportExcel(Request $request)
     {
         $columns = $request->input('columns', [
+            'nik',
             'nama',
             'alamat',
             'no_hp',
@@ -127,7 +130,7 @@ class PenerimaController extends Controller
             'kelayakan_rumah',
             'pendapatan_perbulan',
         ]);
-        return Excel::download(new PenerimaExport($columns), 'penerima.xlsx');
+        return Excel::download(new BeneficiaryExport($columns), 'beneficiary.xlsx');
     }
 
     public function importExcel(Request $request)
@@ -135,21 +138,21 @@ class PenerimaController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,xls'
         ]);
-        Excel::import(new PenerimaImport, $request->file('file'));
-        return redirect()->route('penerima.index')->with('success', 'Data berhasil diimport!');
+        Excel::import(new BeneficiaryImport, $request->file('file'));
+        return redirect()->route('beneficiary.index')->with('success', 'Data berhasil diimport!');
     }
 
     public function bulkDelete(Request $request)
     {
         if ($request->input('select_all') == 1) {
-            Penerima::query()->delete();
-            return redirect()->route('penerima.index')->with('success', 'Semua data berhasil dihapus!');
+            Beneficiary::query()->delete();
+            return redirect()->route('beneficiary.index')->with('success', 'Semua data berhasil dihapus!');
         }
         $ids = $request->input('ids', []);
         if (!empty($ids)) {
-            Penerima::whereIn('id', $ids)->delete();
-            return redirect()->route('penerima.index')->with('success', 'Data terpilih berhasil dihapus!');
+            Beneficiary::whereIn('id', $ids)->delete();
+            return redirect()->route('beneficiary.index')->with('success', 'Data terpilih berhasil dihapus!');
         }
-        return redirect()->route('penerima.index')->with('success', 'Tidak ada data yang dipilih.');
+        return redirect()->route('beneficiary.index')->with('success', 'Tidak ada data yang dipilih.');
     }
 }

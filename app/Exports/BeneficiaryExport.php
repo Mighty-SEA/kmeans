@@ -2,11 +2,11 @@
 
 namespace App\Exports;
 
-use App\Models\Penerima;
+use App\Models\Beneficiary;
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 
-class PenerimaExport implements FromCollection, WithHeadings
+class BeneficiaryExport implements FromCollection, WithHeadings
 {
     protected $columns;
     protected $headings;
@@ -14,6 +14,7 @@ class PenerimaExport implements FromCollection, WithHeadings
     public function __construct($columns = null)
     {
         $this->columns = $columns ?? [
+            'nik',
             'nama',
             'alamat',
             'no_hp',
@@ -23,6 +24,7 @@ class PenerimaExport implements FromCollection, WithHeadings
             'pendapatan_perbulan',
         ];
         $this->headings = [
+            'nik' => 'NIK',
             'nama' => 'Nama',
             'alamat' => 'Alamat',
             'no_hp' => 'No HP',
@@ -35,7 +37,7 @@ class PenerimaExport implements FromCollection, WithHeadings
 
     public function collection()
     {
-        return Penerima::select($this->columns)->get();
+        return Beneficiary::select($this->columns)->get();
     }
 
     public function headings(): array
