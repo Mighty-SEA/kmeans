@@ -14,7 +14,7 @@ class StatisticController extends Controller
 {
     public function index()
     {
-        $data = Beneficiary::all(['id', 'nama', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
+        $data = Beneficiary::all(['id', 'nama', 'nik', 'alamat', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
         if ($data->count() < 3) {
             return view('penerima.statistic', [
                 'clusters' => [],
@@ -39,6 +39,8 @@ class StatisticController extends Controller
                         'cluster' => (int) $row->cluster,
                         'nama' => $beneficiary->nama,
                         'silhouette' => $row->silhouette,
+                        'nik' => $beneficiary->nik,
+                        'alamat' => $beneficiary->alamat,
                     ];
                 }
             }
@@ -50,6 +52,7 @@ class StatisticController extends Controller
                     (float) $item->jumlah_anak,
                     (float) $item->kelayakan_rumah,
                     (float) $item->pendapatan_perbulan,
+                    // NIK dan alamat tidak dimasukkan ke dalam sampel untuk K-means
                 ];
             })->toArray();
             $clusterer = new KMeans(3);
@@ -71,6 +74,8 @@ class StatisticController extends Controller
                     'cluster' => (int) $labels[$i],
                     'nama' => $row->nama,
                     'silhouette' => $silhouetteScores[$i],
+                    'nik' => $row->nik,
+                    'alamat' => $row->alamat,
                 ];
                 // Simpan ke tabel clustering_results
                 ClusteringResult::updateOrCreate([
@@ -299,7 +304,7 @@ class StatisticController extends Controller
 
     public function showCluster($cluster)
     {
-        $data = Beneficiary::all(['id', 'nama', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
+        $data = Beneficiary::all(['id', 'nama', 'nik', 'alamat', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
         if ($data->count() < 3) {
             return redirect()->route('statistic.index')->with('message', 'Data kurang dari 3, tidak bisa melakukan clustering.');
         }
@@ -328,6 +333,7 @@ class StatisticController extends Controller
                     (float) $item->jumlah_anak,
                     (float) $item->kelayakan_rumah,
                     (float) $item->pendapatan_perbulan,
+                    // NIK dan alamat tidak dimasukkan ke dalam sampel untuk K-means
                 ];
             })->toArray();
             $clusterer = new KMeans(3);

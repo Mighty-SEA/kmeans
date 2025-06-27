@@ -44,6 +44,7 @@
                         <th class="px-6 py-3"><input type="checkbox" id="checkAll"></th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIK</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No HP</th>
                         <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usia</th>
@@ -59,6 +60,7 @@
                         <td class="px-6 py-4 text-sm text-gray-500"><input type="checkbox" name="ids[]" value="{{ $p->id }}"></td>
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $i+1 }}</td>
                         <td class="px-6 py-4 font-medium text-indigo-600">{{ $p->nama }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">{{ $p->nik }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $p->alamat }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $p->no_hp }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $p->usia }}</td>
@@ -97,6 +99,7 @@
         <form action="{{ route('beneficiary.export') }}" method="POST">
             @csrf
             <div class="space-y-2 mb-4">
+                <label class="flex items-center"><input type="checkbox" name="columns[]" value="nik" checked class="mr-2"> NIK</label>
                 <label class="flex items-center"><input type="checkbox" name="columns[]" value="nama" checked class="mr-2"> Nama</label>
                 <label class="flex items-center"><input type="checkbox" name="columns[]" value="alamat" checked class="mr-2"> Alamat</label>
                 <label class="flex items-center"><input type="checkbox" name="columns[]" value="no_hp" checked class="mr-2"> No HP</label>

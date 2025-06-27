@@ -189,6 +189,8 @@
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">No</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIK</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Alamat</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Usia</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Jumlah Anak</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kelayakan Rumah</th>
@@ -227,6 +229,8 @@
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $i+1 }}</td>
                         <td class="px-6 py-4 font-medium text-indigo-600">{{ $row->nama ?? '-' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">{{ $row->nik ?? '-' }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">{{ $row->alamat ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $row->usia }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $row->jumlah_anak }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $row->kelayakan_rumah }}</td>
