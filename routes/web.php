@@ -30,6 +30,10 @@ Route::middleware(['auth'])->group(function () {
     
     // Decision Panel Routes
     Route::get('/decision', [DecisionController::class, 'index'])->name('decision.index');
+    Route::get('/decision/create', [DecisionController::class, 'create'])->name('decision.create');
+    Route::post('/decision', [DecisionController::class, 'store'])->name('decision.store');
+    Route::get('/decision/{id}', [DecisionController::class, 'show'])->name('decision.show');
+    Route::delete('/decision/{id}', [DecisionController::class, 'destroy'])->name('decision.destroy');
     
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
