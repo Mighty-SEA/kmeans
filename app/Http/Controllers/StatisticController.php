@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Beneficiary;
 use App\Models\ClusteringResult;
+use App\Models\NormalizationResult;
 use Illuminate\Http\Request;
 use Rubix\ML\Clusterers\KMeans;
 use Rubix\ML\Datasets\Labeled;
@@ -45,16 +46,38 @@ class StatisticController extends Controller
                 }
             }
         } else {
-            // Belum ada hasil cluster, lakukan clustering dan simpan
-            $samples = $data->map(function ($item) {
+            // Belum ada hasil cluster, lakukan normalisasi dan clustering lalu simpan
+            
+            // Ekstrak data yang akan dinormalisasi
+            $usiaValues = $data->pluck('usia')->map(function($item) {
+                return (float) $item;
+            })->toArray();
+            
+            $anakValues = $data->pluck('jumlah_anak')->map(function($item) {
+                return (float) $item;
+            })->toArray();
+            
+            $rumahValues = $data->pluck('kelayakan_rumah')->map(function($item) {
+                return is_numeric($item) ? (float) $item : (float) preg_replace('/[^0-9.]/', '', $item);
+            })->toArray();
+            
+            $pendapatanValues = $data->pluck('pendapatan_perbulan')->map(function($item) {
+                return (float) $item;
+            })->toArray();
+            
+            // Normalisasi data menggunakan Min-Max scaling
+            $normalizedData = $this->normalizeData($data, $usiaValues, $anakValues, $rumahValues, $pendapatanValues);
+            
+            // Gunakan data hasil normalisasi untuk K-Means Clustering
+            $samples = collect($normalizedData)->map(function ($item) {
                 return [
-                    (float) $item->usia,
-                    (float) $item->jumlah_anak,
-                    (float) $item->kelayakan_rumah,
-                    (float) $item->pendapatan_perbulan,
-                    // NIK dan alamat tidak dimasukkan ke dalam sampel untuk K-means
+                    $item['usia_normalized'],
+                    $item['jumlah_anak_normalized'],
+                    $item['kelayakan_rumah_normalized'],
+                    $item['pendapatan_perbulan_normalized'],
                 ];
             })->toArray();
+            
             $clusterer = new KMeans(3);
             $clusterer->train(new Unlabeled($samples));
             $labels = $clusterer->predict(new Unlabeled($samples));
@@ -83,6 +106,16 @@ class StatisticController extends Controller
                 ], [
                     'cluster' => $labels[$i],
                     'silhouette' => $silhouetteScores[$i]
+                ]);
+                
+                // Simpan hasil normalisasi
+                NormalizationResult::updateOrCreate([
+                    'beneficiary_id' => $row->id
+                ], [
+                    'usia_normalized' => $normalizedData[$i]['usia_normalized'],
+                    'jumlah_anak_normalized' => $normalizedData[$i]['jumlah_anak_normalized'],
+                    'kelayakan_rumah_normalized' => $normalizedData[$i]['kelayakan_rumah_normalized'],
+                    'pendapatan_perbulan_normalized' => $normalizedData[$i]['pendapatan_perbulan_normalized']
                 ]);
             }
         }
@@ -296,130 +329,146 @@ class StatisticController extends Controller
 
     public function recalculate()
     {
-        // Hapus semua hasil clustering lama
-        ClusteringResult::truncate();
-        // Lakukan clustering ulang (panggil ulang index)
-        return redirect()->route('statistic.index');
-    }
-
-    public function showCluster($cluster)
-    {
-        $data = Beneficiary::all(['id', 'nama', 'nik', 'alamat', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
+        $data = Beneficiary::all(['id']);
         if ($data->count() < 3) {
             return redirect()->route('statistic.index')->with('message', 'Data kurang dari 3, tidak bisa melakukan clustering.');
         }
         
-        // Ambil hasil cluster dari tabel clustering_results jika sudah ada
-        $clustering = ClusteringResult::all();
+        // Hapus semua hasil clustering lama
+        ClusteringResult::truncate();
+        // Hapus semua hasil normalisasi lama
+        NormalizationResult::truncate();
         
-        if ($clustering->count() === $data->count()) {
-            // Sudah ada hasil cluster, gunakan data ini
-            $result = [0 => [], 1 => [], 2 => []];
-            $silhouettes = [0 => [], 1 => [], 2 => []];
-            foreach ($clustering as $row) {
-                $beneficiary = $data->firstWhere('id', $row->beneficiary_id);
-                if ($beneficiary) {
-                    $result[$row->cluster][] = $beneficiary;
-                    if ($row->silhouette !== null) {
-                        $silhouettes[$row->cluster][] = $row->silhouette;
-                    }
-                }
-            }
-        } else {
-            // Belum ada hasil cluster, lakukan clustering dan simpan
-            $samples = $data->map(function ($item) {
-                return [
-                    (float) $item->usia,
-                    (float) $item->jumlah_anak,
-                    (float) $item->kelayakan_rumah,
-                    (float) $item->pendapatan_perbulan,
-                    // NIK dan alamat tidak dimasukkan ke dalam sampel untuk K-means
-                ];
-            })->toArray();
-            $clusterer = new KMeans(3);
-            $clusterer->train(new Unlabeled($samples));
-            $labels = $clusterer->predict(new Unlabeled($samples));
-            $result = [0 => [], 1 => [], 2 => []];
-            
-            // Hitung silhouette score
-            $silhouetteScores = $this->calculateSilhouetteScores($samples, $labels);
-            $silhouettes = [0 => [], 1 => [], 2 => []];
-            
-            foreach ($data as $i => $row) {
-                $result[$labels[$i]][] = $row;
-                $silhouettes[$labels[$i]][] = $silhouetteScores[$i];
-                
-                // Simpan ke tabel clustering_results
-                ClusteringResult::updateOrCreate([
-                    'beneficiary_id' => $row->id
-                ], [
-                    'cluster' => $labels[$i],
-                    'silhouette' => $silhouetteScores[$i]
-                ]);
-            }
+        // Redirect ke halaman index yang akan melakukan clustering ulang
+        return redirect()->route('statistic.index')->with('success', 'Proses clustering sedang dihitung ulang.');
+    }
+
+    public function showCluster($cluster)
+    {
+        $clusterIndex = (int) $cluster - 1;
+        
+        if ($clusterIndex < 0 || $clusterIndex > 2) {
+            return redirect()->route('statistic.index')->with('error', 'Cluster tidak valid.');
         }
         
-        $selectedCluster = $result[$cluster] ?? [];
-        $selectedSilhouettes = $silhouettes[$cluster] ?? [];
-        
-        // Hitung statistik untuk cluster yang dipilih menggunakan Rubix ML
-        $clusterStats = [];
-        if (!empty($selectedCluster)) {
-            $usiaValues = array_map(fn($r) => (float) $r->usia, $selectedCluster);
-            $anakValues = array_map(fn($r) => (float) $r->jumlah_anak, $selectedCluster);
-            $rumahValues = array_map(fn($r) => is_numeric($r->kelayakan_rumah) ? (float) $r->kelayakan_rumah : (float) preg_replace('/[^0-9.]/', '', $r->kelayakan_rumah), $selectedCluster);
-            $pendapatanValues = array_map(fn($r) => (float) $r->pendapatan_perbulan, $selectedCluster);
+        $data = Beneficiary::join('clustering_results', 'beneficiaries.id', '=', 'clustering_results.beneficiary_id')
+            ->where('clustering_results.cluster', $clusterIndex)
+            ->get();
             
-            $clusterStats = [
-                'usia' => [
-                    'min' => min($usiaValues),
-                    'max' => max($usiaValues),
-                    'mean' => Stats::mean($usiaValues),
-                    'median' => Stats::median($usiaValues),
-                    'std' => sqrt(Stats::variance($usiaValues)),
-                ],
-                'jumlah_anak' => [
-                    'min' => min($anakValues),
-                    'max' => max($anakValues),
-                    'mean' => Stats::mean($anakValues),
-                    'median' => Stats::median($anakValues),
-                    'std' => sqrt(Stats::variance($anakValues)),
-                ],
-                'kelayakan_rumah' => [
-                    'min' => min($rumahValues),
-                    'max' => max($rumahValues),
-                    'mean' => Stats::mean($rumahValues),
-                    'median' => Stats::median($rumahValues),
-                    'std' => sqrt(Stats::variance($rumahValues)),
-                ],
-                'pendapatan' => [
-                    'min' => min($pendapatanValues),
-                    'max' => max($pendapatanValues),
-                    'mean' => Stats::mean($pendapatanValues),
-                    'median' => Stats::median($pendapatanValues),
-                    'std' => sqrt(Stats::variance($pendapatanValues)),
-                ],
-            ];
+        if ($data->isEmpty()) {
+            return redirect()->route('statistic.index')->with('error', 'Tidak ada data dalam cluster ini.');
         }
         
-        // Hitung statistik silhouette
-        $silhouetteStats = [];
-        if (!empty($selectedSilhouettes)) {
-            $silhouetteStats = [
-                'min' => min($selectedSilhouettes),
-                'max' => max($selectedSilhouettes),
-                'mean' => Stats::mean($selectedSilhouettes),
-                'median' => Stats::median($selectedSilhouettes),
-                'std' => sqrt(Stats::variance($selectedSilhouettes)),
-            ];
-        }
+        // Ambil data normalisasi
+        $normalizedData = NormalizationResult::whereIn('beneficiary_id', $data->pluck('id'))->get()
+            ->keyBy('beneficiary_id');
+        
+        // Hitung statistik untuk cluster ini
+        $usiaValues = $data->pluck('usia')->map(function($item) { return (float) $item; })->toArray();
+        $anakValues = $data->pluck('jumlah_anak')->map(function($item) { return (float) $item; })->toArray();
+        $rumahValues = $data->pluck('kelayakan_rumah')->map(function($item) { 
+            return is_numeric($item) ? (float) $item : (float) preg_replace('/[^0-9.]/', '', $item);
+        })->toArray();
+        $pendapatanValues = $data->pluck('pendapatan_perbulan')->map(function($item) { return (float) $item; })->toArray();
+        
+        // Hitung silhouette stats jika ada
+        $silhouetteValues = $data->pluck('silhouette')->filter()->toArray();
+        $silhouetteStats = !empty($silhouetteValues) ? [
+            'min' => min($silhouetteValues),
+            'max' => max($silhouetteValues),
+            'mean' => Stats::mean($silhouetteValues),
+            'median' => Stats::median($silhouetteValues),
+            'std' => sqrt(Stats::variance($silhouetteValues)),
+        ] : null;
+        
+        // Hitung statistik untuk cluster ini
+        $clusterStats = [
+            'usia' => [
+                'min' => min($usiaValues),
+                'max' => max($usiaValues),
+                'mean' => Stats::mean($usiaValues),
+                'median' => Stats::median($usiaValues),
+                'std' => sqrt(Stats::variance($usiaValues)),
+            ],
+            'jumlah_anak' => [
+                'min' => min($anakValues),
+                'max' => max($anakValues),
+                'mean' => Stats::mean($anakValues),
+                'median' => Stats::median($anakValues),
+                'std' => sqrt(Stats::variance($anakValues)),
+            ],
+            'kelayakan_rumah' => [
+                'min' => min($rumahValues),
+                'max' => max($rumahValues),
+                'mean' => Stats::mean($rumahValues),
+                'median' => Stats::median($rumahValues),
+                'std' => sqrt(Stats::variance($rumahValues)),
+            ],
+            'pendapatan' => [
+                'min' => min($pendapatanValues),
+                'max' => max($pendapatanValues),
+                'mean' => Stats::mean($pendapatanValues),
+                'median' => Stats::median($pendapatanValues),
+                'std' => sqrt(Stats::variance($pendapatanValues)),
+            ]
+        ];
         
         return view('penerima.cluster_detail', [
-            'cluster' => $selectedCluster,
-            'clusterIndex' => $cluster,
-            'total' => count($selectedCluster),
+            'clusterIndex' => $clusterIndex,
+            'cluster' => $data,
+            'normalizedData' => $normalizedData,
             'clusterStats' => $clusterStats,
             'silhouetteStats' => $silhouetteStats,
+            'total' => $data->count()
         ]);
+    }
+
+    /**
+     * Menormalisasi data menggunakan Min-Max scaling
+     * 
+     * @param Collection $data Data yang akan dinormalisasi
+     * @param array $usiaValues Array nilai usia
+     * @param array $anakValues Array nilai jumlah anak
+     * @param array $rumahValues Array nilai kelayakan rumah
+     * @param array $pendapatanValues Array nilai pendapatan
+     * @return array Data hasil normalisasi
+     */
+    private function normalizeData($data, $usiaValues, $anakValues, $rumahValues, $pendapatanValues)
+    {
+        // Cari nilai min dan max untuk setiap fitur
+        $usiaMin = min($usiaValues);
+        $usiaMax = max($usiaValues);
+        $anakMin = min($anakValues);
+        $anakMax = max($anakValues);
+        $rumahMin = min($rumahValues);
+        $rumahMax = max($rumahValues);
+        $pendapatanMin = min($pendapatanValues);
+        $pendapatanMax = max($pendapatanValues);
+
+        // Normalisasi dengan Min-Max scaling: (x - min) / (max - min)
+        $normalizedData = [];
+        foreach ($data as $i => $row) {
+            $usiaNormalized = $usiaMax > $usiaMin ? 
+                ($usiaValues[$i] - $usiaMin) / ($usiaMax - $usiaMin) : 0;
+                
+            $anakNormalized = $anakMax > $anakMin ? 
+                ($anakValues[$i] - $anakMin) / ($anakMax - $anakMin) : 0;
+                
+            $rumahNormalized = $rumahMax > $rumahMin ? 
+                ($rumahValues[$i] - $rumahMin) / ($rumahMax - $rumahMin) : 0;
+                
+            $pendapatanNormalized = $pendapatanMax > $pendapatanMin ? 
+                ($pendapatanValues[$i] - $pendapatanMin) / ($pendapatanMax - $pendapatanMin) : 0;
+
+            $normalizedData[] = [
+                'beneficiary_id' => $row->id,
+                'usia_normalized' => $usiaNormalized,
+                'jumlah_anak_normalized' => $anakNormalized,
+                'kelayakan_rumah_normalized' => $rumahNormalized,
+                'pendapatan_perbulan_normalized' => $pendapatanNormalized
+            ];
+        }
+
+        return $normalizedData;
     }
 } 

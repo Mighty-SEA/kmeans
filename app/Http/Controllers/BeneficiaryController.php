@@ -113,9 +113,17 @@ class BeneficiaryController extends Controller
 
     public function destroy($id)
     {
-        $penerima = Beneficiary::findOrFail($id);
-        $penerima->delete();
-        return redirect()->route('beneficiary.index')->with('success', 'Data berhasil dihapus!');
+        // Cari data penerima bantuan berdasarkan ID
+        $beneficiary = Beneficiary::findOrFail($id);
+        
+        // Hapus data normalisasi dan clustering jika ada
+        $beneficiary->normalizationResult()->delete();
+        $beneficiary->clusteringResult()->delete();
+        
+        // Hapus data penerima
+        $beneficiary->delete();
+        
+        return redirect()->route('beneficiary.index')->with('success', 'Data penerima bantuan berhasil dihapus');
     }
 
     public function exportExcel(Request $request)

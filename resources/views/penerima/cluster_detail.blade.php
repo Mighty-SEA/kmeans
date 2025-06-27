@@ -183,6 +183,19 @@
     </div>
     @endif
     
+    <div class="mb-4 flex justify-between items-center">
+        <h4 class="font-medium text-gray-700 text-lg">Data Anggota Cluster</h4>
+        
+        <div class="flex items-center">
+            <span class="text-sm text-gray-600 mr-2">Data Asli</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" id="toggleNormalized" class="sr-only peer">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+            <span class="text-sm text-gray-600 ml-2">Data Normalisasi</span>
+        </div>
+    </div>
+    
     <div class="overflow-x-auto rounded-lg shadow">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
@@ -225,16 +238,39 @@
                                 $silhouetteClass = 'text-red-600';
                             }
                         }
+                        
+                        // Data normalisasi
+                        $normalizedItem = isset($normalizedData[$row->id]) ? $normalizedData[$row->id] : null;
                     @endphp
                     <tr class="hover:bg-gray-50 transition">
                         <td class="px-6 py-4 text-sm text-gray-500">{{ $i+1 }}</td>
                         <td class="px-6 py-4 font-medium text-indigo-600">{{ $row->nama ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $row->nik ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $row->alamat ?? '-' }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-700">{{ $row->usia }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-700">{{ $row->jumlah_anak }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-700">{{ $row->kelayakan_rumah }}</td>
-                        <td class="px-6 py-4 text-sm text-gray-700">Rp {{ number_format($row->pendapatan_perbulan, 0, ',', '.') }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            <span class="data-original">{{ $row->usia }}</span>
+                            @if($normalizedItem)
+                                <span class="data-normalized hidden">{{ number_format($normalizedItem->usia_normalized, 4) }}</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            <span class="data-original">{{ $row->jumlah_anak }}</span>
+                            @if($normalizedItem)
+                                <span class="data-normalized hidden">{{ number_format($normalizedItem->jumlah_anak_normalized, 4) }}</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            <span class="data-original">{{ $row->kelayakan_rumah }}</span>
+                            @if($normalizedItem)
+                                <span class="data-normalized hidden">{{ number_format($normalizedItem->kelayakan_rumah_normalized, 4) }}</span>
+                            @endif
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-700">
+                            <span class="data-original">Rp {{ number_format($row->pendapatan_perbulan, 0, ',', '.') }}</span>
+                            @if($normalizedItem)
+                                <span class="data-normalized hidden">{{ number_format($normalizedItem->pendapatan_perbulan_normalized, 4) }}</span>
+                            @endif
+                        </td>
                         @if(isset($silhouetteStats))
                         <td class="px-6 py-4">
                             @if($silhouette !== null)
@@ -256,4 +292,26 @@
         </table>
     </div>
 </div>
-@endsection 
+@endsection
+
+@push('scripts')
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const toggleSwitch = document.getElementById('toggleNormalized');
+        const originalData = document.querySelectorAll('.data-original');
+        const normalizedData = document.querySelectorAll('.data-normalized');
+        
+        toggleSwitch.addEventListener('change', function() {
+            if (this.checked) {
+                // Tampilkan data normalisasi
+                originalData.forEach(el => el.classList.add('hidden'));
+                normalizedData.forEach(el => el.classList.remove('hidden'));
+            } else {
+                // Tampilkan data asli
+                originalData.forEach(el => el.classList.remove('hidden'));
+                normalizedData.forEach(el => el.classList.add('hidden'));
+            }
+        });
+    });
+</script>
+@endpush 

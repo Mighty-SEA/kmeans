@@ -18,4 +18,14 @@ class Beneficiary extends Model
         'pendapatan_perbulan',
         'nik',
     ];
+
+    public function clusteringResult()
+    {
+        return $this->hasOne(ClusteringResult::class);
+    }
+
+    public function normalizationResult()
+    {
+        return $this->hasOne(NormalizationResult::class);
+    }
 }
