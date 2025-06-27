@@ -66,6 +66,20 @@
                                 </div>
                             </div>
                         </div>
+                        <div>
+                            <label for="normalization" class="block text-sm font-medium text-gray-700 mb-1">Metode Normalisasi:</label>
+                            <div class="relative">
+                                <select id="normalization" name="normalization" class="block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                    <option value="none">Tanpa Normalisasi</option>
+                                    <option value="minmax">Min-Max</option>
+                                    <option value="standard">Standard (Z-Score)</option>
+                                    <option value="robust">Robust</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
                         <button type="submit" class="flex items-center px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-md">
                             <i class="fas fa-chart-pie mr-2"></i> Hitung Clustering
                         </button>

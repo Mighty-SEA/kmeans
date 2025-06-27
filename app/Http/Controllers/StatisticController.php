@@ -381,48 +381,43 @@ class StatisticController extends Controller
     }
 
     /**
-     * Menormalisasi data menggunakan Min-Max scaling
-     * 
-     * @param Collection $data Data yang akan dinormalisasi
+     * Menormalisasi data menggunakan Robust Scaler
+     *
+     * @param \Illuminate\Support\Collection $data Data yang akan dinormalisasi
      * @param array $usiaValues Array nilai usia
      * @param array $anakValues Array nilai jumlah anak
      * @param array $rumahValues Array nilai kelayakan rumah
      * @param array $pendapatanValues Array nilai pendapatan
      * @return array Data hasil normalisasi
      */
-    private function normalizeData($data, $usiaValues, $anakValues, $rumahValues, $pendapatanValues)
+    private function normalizeData($data, array $usiaValues, array $anakValues, array $rumahValues, array $pendapatanValues)
     {
-        // Cari nilai min dan max untuk setiap fitur
-        $usiaMin = min($usiaValues);
-        $usiaMax = max($usiaValues);
-        $anakMin = min($anakValues);
-        $anakMax = max($anakValues);
-        $rumahMin = min($rumahValues);
-        $rumahMax = max($rumahValues);
-        $pendapatanMin = min($pendapatanValues);
-        $pendapatanMax = max($pendapatanValues);
+        // Normalisasi dengan Robust Scaler dari Rubix ML
+        $features = [];
+        foreach ($data as $i => $row) {
+            $features[] = [
+                $usiaValues[$i],
+                $anakValues[$i],
+                $rumahValues[$i],
+                $pendapatanValues[$i],
+            ];
+        }
+        $dataset = new \Rubix\ML\Datasets\Unlabeled($features);
+        $transformer = new \Rubix\ML\Transformers\RobustStandardizer(true); // center = true
+        $transformer->fit($dataset);
+        $features = $dataset->samples(); // ambil array 2D dari dataset
+        $transformer->transform($features); // transform array, hasilnya by reference
+        $normalized = $features;
 
-        // Normalisasi dengan Min-Max scaling: (x - min) / (max - min)
+        // Simpan hasil normalisasi ke array asosiatif
         $normalizedData = [];
         foreach ($data as $i => $row) {
-            $usiaNormalized = $usiaMax > $usiaMin ? 
-                ($usiaValues[$i] - $usiaMin) / ($usiaMax - $usiaMin) : 0;
-                
-            $anakNormalized = $anakMax > $anakMin ? 
-                ($anakValues[$i] - $anakMin) / ($anakMax - $anakMin) : 0;
-                
-            $rumahNormalized = $rumahMax > $rumahMin ? 
-                ($rumahValues[$i] - $rumahMin) / ($rumahMax - $rumahMin) : 0;
-                
-            $pendapatanNormalized = $pendapatanMax > $pendapatanMin ? 
-                ($pendapatanValues[$i] - $pendapatanMin) / ($pendapatanMax - $pendapatanMin) : 0;
-
             $normalizedData[] = [
                 'beneficiary_id' => $row->id,
-                'usia_normalized' => $usiaNormalized,
-                'jumlah_anak_normalized' => $anakNormalized,
-                'kelayakan_rumah_normalized' => $rumahNormalized,
-                'pendapatan_perbulan_normalized' => $pendapatanNormalized
+                'usia_normalized' => $normalized[$i][0],
+                'jumlah_anak_normalized' => $normalized[$i][1],
+                'kelayakan_rumah_normalized' => $normalized[$i][2],
+                'pendapatan_perbulan_normalized' => $normalized[$i][3],
             ];
         }
 
@@ -440,9 +435,11 @@ class StatisticController extends Controller
         // Validasi input
         $validated = $request->validate([
             'num_clusters' => 'required|integer|min:2|max:10',
+            'normalization' => 'required|in:none,minmax,standard,robust',
         ]);
         
         $numClusters = $validated['num_clusters'];
+        $normalization = $validated['normalization'];
         
         $data = Beneficiary::all(['id', 'nama', 'nik', 'alamat', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
         if ($data->count() < $numClusters) {
@@ -470,9 +467,47 @@ class StatisticController extends Controller
             return (float) $item;
         })->toArray();
         
-        // Normalisasi data menggunakan Min-Max scaling
-        $normalizedData = $this->normalizeData($data, $usiaValues, $anakValues, $rumahValues, $pendapatanValues);
-        
+        // Pilih metode normalisasi
+        $features = [];
+        foreach ($data as $i => $row) {
+            $features[] = [
+                $usiaValues[$i],
+                $anakValues[$i],
+                $rumahValues[$i],
+                $pendapatanValues[$i],
+            ];
+        }
+        $normalized = $features;
+        if ($normalization === 'minmax') {
+            $dataset = new \Rubix\ML\Datasets\Unlabeled($features);
+            $transformer = new \Rubix\ML\Transformers\MinMaxNormalizer();
+            $transformer->fit($dataset);
+            $normalized = $dataset->samples();
+            $transformer->transform($normalized);
+        } elseif ($normalization === 'standard') {
+            $dataset = new \Rubix\ML\Datasets\Unlabeled($features);
+            $transformer = new \Rubix\ML\Transformers\ZScaleStandardizer();
+            $transformer->fit($dataset);
+            $normalized = $dataset->samples();
+            $transformer->transform($normalized);
+        } elseif ($normalization === 'robust') {
+            $dataset = new \Rubix\ML\Datasets\Unlabeled($features);
+            $transformer = new \Rubix\ML\Transformers\RobustStandardizer(true);
+            $transformer->fit($dataset);
+            $normalized = $dataset->samples();
+            $transformer->transform($normalized);
+        }
+        // Simpan hasil normalisasi ke array asosiatif
+        $normalizedData = [];
+        foreach ($data as $i => $row) {
+            $normalizedData[] = [
+                'beneficiary_id' => $row->id,
+                'usia_normalized' => $normalized[$i][0],
+                'jumlah_anak_normalized' => $normalized[$i][1],
+                'kelayakan_rumah_normalized' => $normalized[$i][2],
+                'pendapatan_perbulan_normalized' => $normalized[$i][3],
+            ];
+        }
         // Gunakan data hasil normalisasi untuk K-Means Clustering
         $samples = collect($normalizedData)->map(function ($item) {
             return [
@@ -482,14 +517,11 @@ class StatisticController extends Controller
                 $item['pendapatan_perbulan_normalized'],
             ];
         })->toArray();
-        
         $clusterer = new KMeans($numClusters);
         $clusterer->train(new Unlabeled($samples));
         $labels = $clusterer->predict(new Unlabeled($samples));
-        
         // Hitung silhouette score
         $silhouetteScores = $this->calculateSilhouetteScores($samples, $labels);
-        
         foreach ($data as $i => $row) {
             // Simpan ke tabel clustering_results
             ClusteringResult::updateOrCreate([
@@ -498,7 +530,6 @@ class StatisticController extends Controller
                 'cluster' => $labels[$i],
                 'silhouette' => $silhouetteScores[$i]
             ]);
-            
             // Simpan hasil normalisasi
             NormalizationResult::updateOrCreate([
                 'beneficiary_id' => $row->id
@@ -509,7 +540,6 @@ class StatisticController extends Controller
                 'pendapatan_perbulan_normalized' => $normalizedData[$i]['pendapatan_perbulan_normalized']
             ]);
         }
-        
         return redirect()->route('statistic.index')->with('success', "Clustering berhasil dilakukan dengan $numClusters cluster.");
     }
 } 
