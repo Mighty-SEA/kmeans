@@ -17,10 +17,11 @@
     </div>
     
     @php
-        $clusterColors = ['red', 'blue', 'green'];
-        $bgClass = 'bg-' . $clusterColors[$clusterIndex] . '-100';
-        $borderClass = 'border-' . $clusterColors[$clusterIndex] . '-300';
-        $textClass = 'text-' . $clusterColors[$clusterIndex] . '-800';
+        $clusterColors = ['red', 'blue', 'green', 'purple', 'pink', 'yellow', 'indigo', 'teal', 'orange', 'gray'];
+        $colorIndex = min($clusterIndex, count($clusterColors) - 1);
+        $bgClass = 'bg-' . $clusterColors[$colorIndex] . '-100';
+        $borderClass = 'border-' . $clusterColors[$colorIndex] . '-300';
+        $textClass = 'text-' . $clusterColors[$colorIndex] . '-800';
     @endphp
     
     <div class="mb-8 p-6 rounded-lg {{ $bgClass }} {{ $borderClass }} border">
@@ -35,25 +36,25 @@
         </div>
         
         @if(isset($silhouetteStats) && !empty($silhouetteStats))
-        <div class="mt-4 pt-4 border-t border-{{ $clusterColors[$clusterIndex] }}-200">
+        <div class="mt-4 pt-4 border-t border-{{ $clusterColors[$colorIndex] }}-200">
             <h5 class="font-medium {{ $textClass }} mb-2">Silhouette Score</h5>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <div class="flex justify-between text-sm mb-1">
-                        <span class="text-{{ $clusterColors[$clusterIndex] }}-700">Rata-rata:</span>
-                        <span class="font-medium text-{{ $clusterColors[$clusterIndex] }}-800">{{ number_format($silhouetteStats['mean'], 2) }}</span>
+                        <span class="text-{{ $clusterColors[$colorIndex] }}-700">Rata-rata:</span>
+                        <span class="font-medium text-{{ $clusterColors[$colorIndex] }}-800">{{ number_format($silhouetteStats['mean'], 2) }}</span>
                     </div>
                     <div class="w-full bg-white rounded-full h-2.5 mb-3">
-                        <div class="h-2.5 rounded-full bg-{{ $clusterColors[$clusterIndex] }}-500" 
+                        <div class="h-2.5 rounded-full bg-{{ $clusterColors[$colorIndex] }}-500" 
                              style="width: {{ min(max(($silhouetteStats['mean'] + 1) / 2 * 100, 5), 100) }}%"></div>
                     </div>
                 </div>
                 <div>
                     <div class="flex justify-between text-sm">
-                        <span class="text-{{ $clusterColors[$clusterIndex] }}-700">Min: {{ number_format($silhouetteStats['min'], 2) }}</span>
-                        <span class="text-{{ $clusterColors[$clusterIndex] }}-700">Max: {{ number_format($silhouetteStats['max'], 2) }}</span>
+                        <span class="text-{{ $clusterColors[$colorIndex] }}-700">Min: {{ number_format($silhouetteStats['min'], 2) }}</span>
+                        <span class="text-{{ $clusterColors[$colorIndex] }}-700">Max: {{ number_format($silhouetteStats['max'], 2) }}</span>
                     </div>
-                    <div class="text-xs text-{{ $clusterColors[$clusterIndex] }}-700 mt-1">
+                    <div class="text-xs text-{{ $clusterColors[$colorIndex] }}-700 mt-1">
                         <span>Median: {{ number_format($silhouetteStats['median'], 2) }}</span> | 
                         <span>Std Dev: {{ number_format($silhouetteStats['std'], 2) }}</span>
                     </div>
@@ -276,7 +277,7 @@
                             @if($silhouette !== null)
                                 <div class="flex items-center">
                                     <div class="w-full bg-gray-200 rounded-full h-1.5 mr-2 max-w-[50px]">
-                                        <div class="h-1.5 rounded-full bg-{{ $clusterColors[$clusterIndex] }}-500" 
+                                        <div class="h-1.5 rounded-full bg-{{ $clusterColors[$colorIndex] }}-500" 
                                              style="width: {{ min(max(($silhouette + 1) / 2 * 100, 5), 100) }}%"></div>
                                     </div>
                                     <span class="text-xs font-medium {{ $silhouetteClass }}">{{ number_format($silhouette, 2) }}</span>

@@ -5,6 +5,20 @@
 
 @section('content')
 <div class="space-y-8 w-full">
+    @if(session('error'))
+        <div class="bg-red-100 text-red-800 p-4 rounded-lg shadow-sm flex items-center border border-red-200">
+            <i class="fas fa-exclamation-circle mr-2 text-red-600"></i>
+            <span>{{ session('error') }}</span>
+        </div>
+    @endif
+
+    @if(session('success'))
+        <div class="bg-green-100 text-green-800 p-4 rounded-lg shadow-sm flex items-center border border-green-200">
+            <i class="fas fa-check-circle mr-2 text-green-600"></i>
+            <span>{{ session('success') }}</span>
+        </div>
+    @endif
+    
     @if($message)
         <div class="bg-yellow-100 text-yellow-800 p-4 rounded-lg shadow-sm flex items-center border border-yellow-200">
             <i class="fas fa-exclamation-circle mr-2 text-yellow-600"></i>
@@ -14,30 +28,63 @@
         <div class="bg-white rounded-lg shadow-md p-8">
             <div class="flex flex-col md:flex-row justify-between items-center mb-8">
                 <div class="mb-4 md:mb-0">
-                    <h3 class="text-xl font-medium text-gray-700">Hasil Clustering K-Means</h3>
-                    <p class="text-sm text-gray-500 mt-1">Visualisasi dan analisis hasil clustering dengan metode K-Means (3 Cluster)</p>
+                    <h3 class="text-xl font-medium text-gray-700">{{ isset($clustered) && $clustered ? 'Hasil Clustering K-Means' : 'Analisis Clustering K-Means' }}</h3>
+                    <p class="text-sm text-gray-500 mt-1">
+                        @if(isset($clustered) && $clustered)
+                            Visualisasi dan analisis hasil clustering dengan metode K-Means ({{ $clusterCount }} Cluster)
+                        @else
+                            Lakukan clustering untuk melihat analisis data
+                        @endif
+                    </p>
                     <div class="mt-2 bg-blue-50 text-blue-700 px-3 py-1 rounded-md text-xs inline-flex items-center">
                         <i class="fas fa-info-circle mr-1"></i>
                         <span>Powered by Rubix ML (PHP Machine Learning)</span>
                     </div>
                 </div>
-                <form action="{{ route('statistic.recalculate') }}" method="POST">
+                
+                @if(isset($clustered) && $clustered)
+                <form action="{{ route('statistic.recalculate') }}" method="POST" class="mb-4 md:mb-0 md:ml-2">
                     @csrf
                     <button type="submit" class="flex items-center px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-md">
                         <i class="fas fa-sync-alt mr-2"></i> Hitung Ulang Clustering
                     </button>
                 </form>
+                @else
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <form action="{{ route('statistic.clustering') }}" method="POST" class="flex flex-col md:flex-row items-end gap-4">
+                        @csrf
+                        <div>
+                            <label for="num_clusters" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Cluster:</label>
+                            <div class="relative">
+                                <select id="num_clusters" name="num_clusters" class="block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                    @for ($i = 2; $i <= min(10, isset($dataCount) ? $dataCount : 10); $i++)
+                                        <option value="{{ $i }}">{{ $i }}</option>
+                                    @endfor
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="flex items-center px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-md">
+                            <i class="fas fa-chart-pie mr-2"></i> Hitung Clustering
+                        </button>
+                    </form>
+                </div>
+                @endif
             </div>
             
+            @if(isset($clustered) && $clustered)
             <!-- Ringkasan Cluster -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 @foreach($clusterCounts as $key => $count)
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                     @php
-                        $clusterColors = ['red', 'blue', 'green'];
-                        $bgClass = 'bg-' . $clusterColors[$key] . '-100';
-                        $textClass = 'text-' . $clusterColors[$key] . '-600';
-                        $borderClass = 'border-' . $clusterColors[$key] . '-500';
+                        $clusterColors = ['red', 'blue', 'green', 'purple', 'pink', 'yellow', 'indigo', 'teal', 'orange', 'gray'];
+                        $colorIndex = min($key, count($clusterColors) - 1);
+                        $bgClass = 'bg-' . $clusterColors[$colorIndex] . '-100';
+                        $textClass = 'text-' . $clusterColors[$colorIndex] . '-600';
+                        $borderClass = 'border-' . $clusterColors[$colorIndex] . '-500';
                         
                         // Silhouette score color
                         $silhouetteValue = isset($avgSilhouettes[$key]) ? $avgSilhouettes[$key] : 0;
@@ -238,52 +285,79 @@
                     </table>
                 </div>
             </div>
-        </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-            @foreach($clusters as $key => $cluster)
-                <div class="bg-white rounded-lg shadow-md p-8">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-xl font-medium text-gray-700">
-                            @php
-                                $clusterColors = ['red', 'blue', 'green'];
-                                $bgClass = 'bg-' . $clusterColors[$key] . '-100';
-                                $textClass = 'text-' . $clusterColors[$key] . '-600';
-                            @endphp
-                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full mr-2 {{ $bgClass }} {{ $textClass }}">
-                                {{ $key + 1 }}
-                            </span>
-                            Cluster {{ $key + 1 }}
-                        </h3>
-                        <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">{{ count($cluster) }} data</span>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                @foreach($clusters as $key => $cluster)
+                    <div class="bg-white rounded-lg shadow-md p-8">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="text-xl font-medium text-gray-700">
+                                @php
+                                    $clusterColors = ['red', 'blue', 'green', 'purple', 'pink', 'yellow', 'indigo', 'teal', 'orange', 'gray'];
+                                    $colorIndex = min($key, count($clusterColors) - 1);
+                                    $bgClass = 'bg-' . $clusterColors[$colorIndex] . '-100';
+                                    $textClass = 'text-' . $clusterColors[$colorIndex] . '-600';
+                                @endphp
+                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full mr-2 {{ $bgClass }} {{ $textClass }}">
+                                    {{ $key + 1 }}
+                                </span>
+                                Cluster {{ $key + 1 }}
+                            </h3>
+                            <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">{{ count($cluster) }} data</span>
+                        </div>
+                        
+                        <div class="space-y-3">
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-sm font-medium text-gray-500">Rata-rata Usia</span>
+                                <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['usia'], 1) }}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-sm font-medium text-gray-500">Rata-rata Jumlah Anak</span>
+                                <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['jumlah_anak'], 1) }}</span>
+                            </div>
+                            <div class="flex justify-between border-b border-gray-100 pb-2">
+                                <span class="text-sm font-medium text-gray-500">Rata-rata Kelayakan</span>
+                                <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['kelayakan_rumah'], 1) }}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-sm font-medium text-gray-500">Rata-rata Pendapatan</span>
+                                <span class="text-sm font-medium text-gray-800">Rp {{ number_format($clusterMeans[$key]['pendapatan'], 0, ',', '.') }}</span>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-6">
+                            <a href="{{ route('statistic.cluster', $key) }}" class="block w-full text-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition">
+                                Detail Anggota Cluster
+                            </a>
+                        </div>
                     </div>
-                    
-                    <div class="space-y-3">
-                        <div class="flex justify-between border-b border-gray-100 pb-2">
-                            <span class="text-sm font-medium text-gray-500">Rata-rata Usia</span>
-                            <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['usia'], 1) }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-100 pb-2">
-                            <span class="text-sm font-medium text-gray-500">Rata-rata Jumlah Anak</span>
-                            <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['jumlah_anak'], 1) }}</span>
-                        </div>
-                        <div class="flex justify-between border-b border-gray-100 pb-2">
-                            <span class="text-sm font-medium text-gray-500">Rata-rata Kelayakan</span>
-                            <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['kelayakan_rumah'], 1) }}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-sm font-medium text-gray-500">Rata-rata Pendapatan</span>
-                            <span class="text-sm font-medium text-gray-800">Rp {{ number_format($clusterMeans[$key]['pendapatan'], 0, ',', '.') }}</span>
-                        </div>
+                @endforeach
+            </div>
+            @else
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                <div class="flex flex-col items-center justify-center py-12">
+                    <div class="mb-6 text-gray-400">
+                        <i class="fas fa-chart-scatter text-6xl"></i>
                     </div>
+                    <h4 class="text-xl font-medium text-gray-700 mb-2">Belum Ada Hasil Clustering</h4>
+                    <p class="text-sm text-gray-500 mb-8 text-center">Silahkan lakukan clustering untuk melihat hasil analisis data</p>
                     
-                    <div class="mt-6">
-                        <a href="{{ route('statistic.cluster', $key) }}" class="block w-full text-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition">
-                            Detail Anggota Cluster
-                        </a>
+                    <div class="flex flex-col items-center">
+                        <div class="text-sm text-gray-500 mb-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                                <span>Dengan clustering K-Means Anda dapat:</span>
+                            </div>
+                        </div>
+                        <ul class="list-disc list-inside text-sm text-gray-600 space-y-2 mb-8">
+                            <li>Mengelompokkan data ke dalam beberapa cluster</li>
+                            <li>Melihat karakteristik setiap cluster</li>
+                            <li>Melakukan analisis berdasarkan kesamaan fitur</li>
+                            <li>Mengambil keputusan berdasarkan hasil clustering</li>
+                        </ul>
                     </div>
                 </div>
-            @endforeach
+            </div>
+            @endif
         </div>
     @endif
 </div>
@@ -292,24 +366,51 @@
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    @if(isset($clustered) && $clustered)
     // Pie Chart
     const pieCtx = document.getElementById('pieChart').getContext('2d');
+    
+    // Buat labels dan data dinamis sesuai jumlah cluster
+    const clusterLabels = [];
+    const clusterData = [];
+    const backgroundColors = [
+        'rgba(248, 113, 113, 0.7)', // red
+        'rgba(96, 165, 250, 0.7)',  // blue
+        'rgba(52, 211, 153, 0.7)',  // green
+        'rgba(167, 139, 250, 0.7)', // purple
+        'rgba(249, 168, 212, 0.7)', // pink
+        'rgba(251, 191, 36, 0.7)',  // yellow
+        'rgba(129, 140, 248, 0.7)', // indigo
+        'rgba(45, 212, 191, 0.7)',  // teal
+        'rgba(249, 115, 22, 0.7)',  // orange
+        'rgba(156, 163, 175, 0.7)'  // gray
+    ];
+    const borderColors = [
+        'rgb(220, 38, 38)',    // red
+        'rgb(37, 99, 235)',    // blue
+        'rgb(5, 150, 105)',    // green
+        'rgb(124, 58, 237)',   // purple
+        'rgb(236, 72, 153)',   // pink
+        'rgb(245, 158, 11)',   // yellow
+        'rgb(67, 56, 202)',    // indigo
+        'rgb(20, 184, 166)',   // teal
+        'rgb(234, 88, 12)',    // orange
+        'rgb(107, 114, 128)'   // gray
+    ];
+    
+    @for($i = 0; $i < $clusterCount; $i++)
+        clusterLabels.push('Cluster {{ $i + 1 }}');
+        clusterData.push({{ $clusterCounts[$i] ?? 0 }});
+    @endfor
+    
     new Chart(pieCtx, {
         type: 'pie',
         data: {
-            labels: ['Cluster 1', 'Cluster 2', 'Cluster 3'],
+            labels: clusterLabels,
             datasets: [{
-                data: [{{ $clusterCounts[0] }}, {{ $clusterCounts[1] }}, {{ $clusterCounts[2] }}],
-                backgroundColor: [
-                    'rgba(248, 113, 113, 0.7)',
-                    'rgba(96, 165, 250, 0.7)',
-                    'rgba(52, 211, 153, 0.7)'
-                ],
-                borderColor: [
-                    'rgb(220, 38, 38)',
-                    'rgb(37, 99, 235)',
-                    'rgb(5, 150, 105)'
-                ],
+                data: clusterData,
+                backgroundColor: backgroundColors.slice(0, {{ $clusterCount }}),
+                borderColor: borderColors.slice(0, {{ $clusterCount }}),
                 borderWidth: 2
             }]
         },
@@ -342,48 +443,28 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Bar Chart
     const barCtx = document.getElementById('barChart').getContext('2d');
+    const barDatasets = [];
+    
+    @for($i = 0; $i < $clusterCount; $i++)
+        barDatasets.push({
+            label: 'Cluster {{ $i + 1 }}',
+            data: [
+                {{ $clusterMeans[$i]['usia'] ?? 0 }},
+                {{ $clusterMeans[$i]['jumlah_anak'] ?? 0 }},
+                {{ $clusterMeans[$i]['kelayakan_rumah'] ?? 0 }},
+                {{ $clusterMeans[$i]['pendapatan'] ?? 0 }}
+            ],
+            backgroundColor: backgroundColors[{{ $i }}],
+            borderColor: borderColors[{{ $i }}],
+            borderWidth: 2
+        });
+    @endfor
+    
     new Chart(barCtx, {
         type: 'bar',
         data: {
             labels: ['Usia', 'Jumlah Anak', 'Kelayakan Rumah', 'Pendapatan'],
-            datasets: [
-                {
-                    label: 'Cluster 1',
-                    data: [
-                        {{ $clusterMeans[0]['usia'] }},
-                        {{ $clusterMeans[0]['jumlah_anak'] }},
-                        {{ $clusterMeans[0]['kelayakan_rumah'] }},
-                        {{ $clusterMeans[0]['pendapatan'] }}
-                    ],
-                    backgroundColor: 'rgba(248, 113, 113, 0.7)',
-                    borderColor: 'rgb(220, 38, 38)',
-                    borderWidth: 2
-                },
-                {
-                    label: 'Cluster 2',
-                    data: [
-                        {{ $clusterMeans[1]['usia'] }},
-                        {{ $clusterMeans[1]['jumlah_anak'] }},
-                        {{ $clusterMeans[1]['kelayakan_rumah'] }},
-                        {{ $clusterMeans[1]['pendapatan'] }}
-                    ],
-                    backgroundColor: 'rgba(96, 165, 250, 0.7)',
-                    borderColor: 'rgb(37, 99, 235)',
-                    borderWidth: 2
-                },
-                {
-                    label: 'Cluster 3',
-                    data: [
-                        {{ $clusterMeans[2]['usia'] }},
-                        {{ $clusterMeans[2]['jumlah_anak'] }},
-                        {{ $clusterMeans[2]['kelayakan_rumah'] }},
-                        {{ $clusterMeans[2]['pendapatan'] }}
-                    ],
-                    backgroundColor: 'rgba(52, 211, 153, 0.7)',
-                    borderColor: 'rgb(5, 150, 105)',
-                    borderWidth: 2
-                }
-            ]
+            datasets: barDatasets
         },
         options: {
             responsive: true,
@@ -414,8 +495,6 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Scatter Chart
     const scatterData = @json($scatterData);
-    const colors = ['rgba(248, 113, 113, 0.7)', 'rgba(96, 165, 250, 0.7)', 'rgba(52, 211, 153, 0.7)'];
-    const borderColors = ['rgb(220, 38, 38)', 'rgb(37, 99, 235)', 'rgb(5, 150, 105)'];
     const fieldLabels = {
         usia: 'Usia',
         jumlah_anak: 'Jumlah Anak',
@@ -425,28 +504,34 @@ document.addEventListener('DOMContentLoaded', function() {
     };
     
     function getDatasets(xField, yField) {
-        return [0,1,2].map(cluster => ({
-            label: 'Cluster ' + (cluster+1),
-            data: scatterData.filter(d => d.cluster === cluster).map(d => {
-                // Pastikan silhouette tersedia, jika tidak, gunakan 0
-                if (xField === 'silhouette' || yField === 'silhouette') {
-                    if (d.silhouette === undefined) {
-                        d.silhouette = 0;
+        const datasets = [];
+        
+        for (let i = 0; i < {{ $clusterCount }}; i++) {
+            datasets.push({
+                label: 'Cluster ' + (i+1),
+                data: scatterData.filter(d => d.cluster === i).map(d => {
+                    // Pastikan silhouette tersedia, jika tidak, gunakan 0
+                    if (xField === 'silhouette' || yField === 'silhouette') {
+                        if (d.silhouette === undefined) {
+                            d.silhouette = 0;
+                        }
                     }
-                }
-                return {
-                    x: Number(d[xField]),
-                    y: Number(d[yField]),
-                    nama: d.nama,
-                    silhouette: d.silhouette
-                };
-            }),
-            backgroundColor: colors[cluster],
-            borderColor: borderColors[cluster],
-            borderWidth: 1,
-            pointRadius: 6,
-            pointHoverRadius: 8,
-        }));
+                    return {
+                        x: Number(d[xField]),
+                        y: Number(d[yField]),
+                        nama: d.nama,
+                        silhouette: d.silhouette
+                    };
+                }),
+                backgroundColor: backgroundColors[i],
+                borderColor: borderColors[i],
+                borderWidth: 1,
+                pointRadius: 6,
+                pointHoverRadius: 8,
+            });
+        }
+        
+        return datasets;
     }
     
     let xField = document.getElementById('xAxis').value;
@@ -473,58 +558,25 @@ document.addEventListener('DOMContentLoaded', function() {
                             return label + ')';
                         }
                     }
-                },
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        font: {
-                            size: 14
-                        }
-                    }
-                }
-            },
-            scales: {
-                x: { 
-                    title: { 
-                        display: true, 
-                        text: fieldLabels[xField], 
-                        font: { 
-                            weight: 'bold',
-                            size: 14
-                        } 
-                    },
-                    grid: { display: true, color: 'rgba(0,0,0,0.05)' }
-                },
-                y: { 
-                    title: { 
-                        display: true, 
-                        text: fieldLabels[yField], 
-                        font: { 
-                            weight: 'bold',
-                            size: 14
-                        } 
-                    }, 
-                    beginAtZero: true,
-                    grid: { display: true, color: 'rgba(0,0,0,0.05)' }
                 }
             }
         }
     });
     
-    document.getElementById('xAxis').addEventListener('change', function() {
-        xField = this.value;
-        scatterChart.data.datasets = getDatasets(xField, yField);
-        scatterChart.options.scales.x.title.text = fieldLabels[xField];
-        scatterChart.update();
-    });
+    // Handle axis change
+    document.getElementById('xAxis').addEventListener('change', updateScatterChart);
+    document.getElementById('yAxis').addEventListener('change', updateScatterChart);
     
-    document.getElementById('yAxis').addEventListener('change', function() {
-        yField = this.value;
+    function updateScatterChart() {
+        xField = document.getElementById('xAxis').value;
+        yField = document.getElementById('yAxis').value;
+        
         scatterChart.data.datasets = getDatasets(xField, yField);
-        scatterChart.options.scales.y.title.text = fieldLabels[yField];
+        scatterChart.options.scales.x.title = { display: true, text: fieldLabels[xField] };
+        scatterChart.options.scales.y.title = { display: true, text: fieldLabels[yField] };
         scatterChart.update();
-    });
+    }
+    @endif
 });
 </script>
 @endpush

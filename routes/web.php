@@ -24,6 +24,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/statistic', [StatisticController::class, 'index'])->name('statistic.index');
     Route::get('/statistic/cluster/{cluster}', [App\Http\Controllers\StatisticController::class, 'showCluster'])->name('statistic.cluster');
     Route::post('/statistic/recalculate', [StatisticController::class, 'recalculate'])->name('statistic.recalculate');
+    Route::post('/statistic/clustering', [StatisticController::class, 'doClustering'])->name('statistic.clustering');
     Route::post('beneficiary-export', [App\Http\Controllers\BeneficiaryController::class, 'exportExcel'])->name('beneficiary.export');
     Route::post('beneficiary-import', [App\Http\Controllers\BeneficiaryController::class, 'importExcel'])->name('beneficiary.import');
     Route::delete('beneficiary-bulk-delete', [App\Http\Controllers\BeneficiaryController::class, 'bulkDelete'])->name('beneficiary.bulkDelete');
