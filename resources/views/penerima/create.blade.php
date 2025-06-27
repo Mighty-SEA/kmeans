@@ -10,7 +10,7 @@
         <p class="text-sm text-gray-500 mt-1">Silakan lengkapi data penerima bantuan baru</p>
     </div>
     
-    <form action="{{ route('penerima.store') }}" method="POST">
+    <form action="{{ route('beneficiary.store') }}" method="POST">
         @csrf
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
             <div>
@@ -81,7 +81,7 @@
         </div>
         
         <div class="mt-10 flex items-center justify-end space-x-4">
-            <a href="{{ route('penerima.index') }}" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Batal</a>
+            <a href="{{ route('beneficiary.index') }}" class="px-5 py-2.5 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">Batal</a>
             <button type="submit" class="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition flex items-center">
                 <i class="fas fa-save mr-2"></i>
                 <span>Simpan Data</span>

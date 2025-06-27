@@ -64,7 +64,7 @@ class BeneficiaryController extends Controller
     public function index()
     {
         $penerima = Beneficiary::paginate(10); // 10 data per halaman
-        return view('penerima.indexpenerima', compact('penerima'));
+        return view('penerima.index', compact('penerima'));
     }
 
     public function create()

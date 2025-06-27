@@ -18,7 +18,7 @@
             <p class="text-sm text-gray-500 mt-1">Menampilkan semua data penerima bantuan yang terdaftar</p>
         </div>
         <div class="flex items-center">
-            <a href="{{ route('penerima.create') }}" class="flex items-center px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-md">
+            <a href="{{ route('beneficiary.create') }}" class="flex items-center px-5 py-2.5 rounded-lg bg-indigo-600 text-white font-medium hover:bg-indigo-700 transition shadow-md">
                 <i class="fas fa-plus mr-2"></i> Tambah Penerima
             </a>
         </div>
@@ -28,7 +28,7 @@
         <button type="button" onclick="document.getElementById('exportModal').classList.remove('hidden')" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 transition">Export Excel</button>
         <button type="button" onclick="document.getElementById('importModal').classList.remove('hidden')" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 transition">Import Excel</button>
     </div>
-    <form id="bulkDeleteForm" action="{{ route('penerima.bulkDelete') }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data terpilih?')">
+    <form id="bulkDeleteForm" action="{{ route('beneficiary.bulkDelete') }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data terpilih?')">
         @csrf
         @method('DELETE')
         <div class="flex items-center space-x-2 mb-4" id="bulkActionBar" style="display:none">
@@ -67,10 +67,10 @@
                         <td class="px-6 py-4 text-sm text-gray-700">{{ number_format($p->pendapatan_perbulan, 0, ',', '.') }}</td>
                         <td class="px-6 py-4 text-sm text-center">
                             <div class="flex justify-center space-x-3">
-                                <a href="{{ route('penerima.edit', $p->id) }}" class="px-3 py-1.5 rounded bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 transition flex items-center">
+                                <a href="{{ route('beneficiary.edit', $p->id) }}" class="px-3 py-1.5 rounded bg-amber-500 text-white text-xs font-medium hover:bg-amber-600 transition flex items-center">
                                     <i class="fas fa-edit mr-1"></i> Edit
                                 </a>
-                                <form action="{{ route('penerima.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data ini?')">
+                                <form action="{{ route('beneficiary.destroy', $p->id) }}" method="POST" onsubmit="return confirm('Yakin ingin menghapus data ini?')">
                                     @csrf
                                     @method('DELETE')
                                     <button type="submit" class="px-3 py-1.5 rounded bg-red-500 text-white text-xs font-medium hover:bg-red-600 transition flex items-center">
@@ -94,7 +94,7 @@
 <div id="exportModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 hidden">
     <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
         <h2 class="text-lg font-semibold mb-4">Pilih Kolom yang Akan Diexport</h2>
-        <form action="{{ route('penerima.export') }}" method="POST">
+        <form action="{{ route('beneficiary.export') }}" method="POST">
             @csrf
             <div class="space-y-2 mb-4">
                 <label class="flex items-center"><input type="checkbox" name="columns[]" value="nama" checked class="mr-2"> Nama</label>
@@ -116,7 +116,7 @@
 <div id="importModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50 hidden">
     <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 relative">
         <h2 class="text-lg font-semibold mb-4">Import Data Penerima dari Excel</h2>
-        <form action="{{ route('penerima.import') }}" method="POST" enctype="multipart/form-data">
+        <form action="{{ route('beneficiary.import') }}" method="POST" enctype="multipart/form-data">
             @csrf
             <input type="file" name="file" class="block w-full border rounded px-2 py-1 text-sm mb-4" required accept=".xlsx,.xls">
             <div class="flex justify-end space-x-2">

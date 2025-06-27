@@ -37,7 +37,7 @@
                             <i class="fas fa-home mr-2"></i>
                             <span>Dashboard</span>
                         </a>
-                        <a href="{{ route('penerima.index') }}" class="flex items-center text-gray-200 hover:text-white transition-all duration-200 {{ request()->routeIs('penerima.*') ? 'text-white font-medium border-b-2 border-white pb-1' : '' }}">
+                        <a href="{{ route('beneficiary.index') }}" class="flex items-center text-gray-200 hover:text-white transition-all duration-200 {{ request()->routeIs('beneficiary.*') ? 'text-white font-medium border-b-2 border-white pb-2' : '' }}">
                             <i class="fas fa-users mr-2"></i>
                             <span>Data Penerima</span>
                         </a>
@@ -95,7 +95,7 @@
                         <i class="fas fa-home mr-3 w-6"></i>
                         <span>Dashboard</span>
                     </a>
-                    <a href="{{ route('penerima.index') }}" class="flex items-center py-3 px-2 text-gray-200 hover:text-white hover:bg-indigo-700 rounded-lg transition-all duration-200 {{ request()->routeIs('penerima.*') ? 'text-white font-medium bg-indigo-700 bg-opacity-50' : '' }}">
+                    <a href="{{ route('beneficiary.index') }}" class="flex items-center py-3 px-2 text-gray-200 hover:text-white hover:bg-indigo-700 rounded-lg transition-all duration-200 {{ request()->routeIs('beneficiary.*') ? 'text-white font-medium bg-indigo-700' : '' }}">
                         <i class="fas fa-users mr-3 w-6"></i>
                         <span>Data Penerima</span>
                     </a>

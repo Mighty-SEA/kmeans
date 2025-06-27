@@ -203,7 +203,7 @@
                     @php
                         $silhouette = null;
                         if(isset($silhouetteStats)) {
-                            $clusterResult = \App\Models\ClusteringResult::where('penerima_id', $row->id)->first();
+                            $clusterResult = \App\Models\ClusteringResult::where('beneficiary_id', $row->id)->first();
                             if($clusterResult) {
                                 $silhouette = $clusterResult->silhouette;
                             }

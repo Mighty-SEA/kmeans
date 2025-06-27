@@ -141,7 +141,7 @@
                 <h3 class="text-xl font-semibold text-gray-800">Data Penerima Terbaru</h3>
                 <p class="text-sm text-gray-500 mt-1">Data yang paling baru ditambahkan ke sistem</p>
             </div>
-            <a href="{{ route('penerima.index') }}" class="flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors duration-200">
+            <a href="{{ route('beneficiary.index') }}" class="flex items-center px-4 py-2 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors duration-200">
                 <span>Lihat Semua</span>
                 <i class="fas fa-chevron-right ml-2 text-xs"></i>
             </a>
