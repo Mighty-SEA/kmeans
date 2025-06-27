@@ -5,6 +5,7 @@ use App\Http\Controllers\BeneficiaryController;
 use App\Http\Controllers\StatisticController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\DecisionController;
 
 // Authentication Routes
 Route::middleware(['guest'])->group(function () {
@@ -26,6 +27,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('beneficiary-export', [App\Http\Controllers\BeneficiaryController::class, 'exportExcel'])->name('beneficiary.export');
     Route::post('beneficiary-import', [App\Http\Controllers\BeneficiaryController::class, 'importExcel'])->name('beneficiary.import');
     Route::delete('beneficiary-bulk-delete', [App\Http\Controllers\BeneficiaryController::class, 'bulkDelete'])->name('beneficiary.bulkDelete');
+    
+    // Decision Panel Routes
+    Route::get('/decision', [DecisionController::class, 'index'])->name('decision.index');
     
     // Profile Routes
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

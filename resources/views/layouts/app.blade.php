@@ -45,6 +45,10 @@
                             <i class="fas fa-chart-bar mr-2"></i>
                             <span>Statistik</span>
                         </a>
+                        <a href="{{ route('decision.index') }}" class="flex items-center text-gray-200 hover:text-white transition-all duration-200 {{ request()->routeIs('decision.*') ? 'text-white font-medium border-b-2 border-white pb-1' : '' }}">
+                            <i class="fas fa-clipboard-list mr-2"></i>
+                            <span>Panel Keputusan</span>
+                        </a>
                     </nav>
                     @endauth
                 </div>
@@ -102,6 +106,10 @@
                     <a href="{{ route('statistic.index') }}" class="flex items-center py-3 px-2 text-gray-200 hover:text-white hover:bg-indigo-700 rounded-lg transition-all duration-200 {{ request()->routeIs('statistic.*') ? 'text-white font-medium bg-indigo-700 bg-opacity-50' : '' }}">
                         <i class="fas fa-chart-bar mr-3 w-6"></i>
                         <span>Statistik</span>
+                    </a>
+                    <a href="{{ route('decision.index') }}" class="flex items-center py-3 px-2 text-gray-200 hover:text-white hover:bg-indigo-700 rounded-lg transition-all duration-200 {{ request()->routeIs('decision.*') ? 'text-white font-medium bg-indigo-700 bg-opacity-50' : '' }}">
+                        <i class="fas fa-clipboard-list mr-3 w-6"></i>
+                        <span>Panel Keputusan</span>
                     </a>
                     <a href="{{ route('profile.edit') }}" class="flex items-center py-3 px-2 text-gray-200 hover:text-white hover:bg-indigo-700 rounded-lg transition-all duration-200 {{ request()->routeIs('profile.edit') ? 'text-white font-medium bg-indigo-700 bg-opacity-50' : '' }}">
                         <i class="fas fa-user-cog mr-3 w-6"></i>
