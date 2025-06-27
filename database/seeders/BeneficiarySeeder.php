@@ -244,5 +244,101 @@ class BeneficiarySeeder extends Seeder
                 'pendapatan_perbulan' => $item['pendapatan_perbulan'],
             ]);
         }
+
+        // Tambahan data acak agar total 300 data
+        $firstNames = [
+            'Asep', 'Ujang', 'Dede', 'Yayan', 'Iis', 'Nani', 'Euis', 'Teti', 'Yati', 'Cucu',
+            'Oman', 'Oni', 'Enok', 'Iim', 'Ijah', 'Ikin', 'Ika', 'Iwan', 'Nenden', 'Neng',
+            'Nia', 'Nina', 'Nining', 'Nunu', 'Titin', 'Yani', 'Sari', 'Dian', 'Rina', 'Tata',
+            'Dewi', 'Siti', 'Lilis', 'Nana', 'Tini', 'Yuyun', 'Eni', 'Neni', 'Lina', 'Imas',
+            'Atikah', 'Karlina', 'Intan', 'Ida', 'Cici', 'Sinta', 'Rini', 'Rika', 'Ririn', 'Rahma',
+            'Desi', 'Ajeng', 'Maya', 'Mega', 'Indri', 'Putri', 'Febri', 'Dinda', 'Vina', 'Ratu',
+            'Fitri', 'Elsa', 'Cahya', 'Wulan', 'Anisa', 'Yuliana', 'Nadya', 'Anggi', 'Shinta', 'Bella',
+            'Della', 'Anindya', 'Melani', 'Yasmin', 'Citra', 'Annisa', 'Hani', 'Rizka', 'Dianita', 'Tasya',
+            'Bayu', 'Galih', 'Fajar', 'Rizky', 'Rendi', 'Andi', 'Agus', 'Jajang', 'Tatang', 'Yusuf',
+            'Tedi', 'Oding', 'Dadan', 'Aceng', 'Budi', 'Ucup', 'Jamal', 'Ajat', 'Eman', 'Cecep',
+            'Slamet', 'Roni', 'Eko', 'Irfan', 'Ilham', 'Arif', 'Rian', 'Doni', 'Hendra', 'Fauzi',
+            'Taufik', 'Anton', 'Adi', 'Haris', 'Heru', 'Zaki', 'Farhan', 'Reza', 'Bagas', 'Yoga',
+            'Gilang', 'Rio', 'Alif', 'Kevin', 'Rafi', 'Zidan', 'Azka', 'Iqbal', 'Danang', 'Fikri',
+            'Alam', 'Wahyu', 'Johan', 'Steven', 'Nathan', 'Yogi', 'Evan', 'Hafiz', 'Ridwan', 'Akbar'
+        ];
+        
+        $lastNames = [
+            'Suryani', 'Mulyani', 'Setiawati', 'Kurniawati', 'Sulastri', 'Suryana', 'Supriatna',
+            'Permana', 'Suryadi', 'Sopian', 'Suryaman', 'Saputra', 'Gunawan', 'Herlina', 'Rahayu',
+            'Wulandari', 'Sukmawati', 'Rosdiana', 'Sukardi', 'Sukarna', 'Sukirman', 'Sukarsa',
+            'Santosa', 'Hidayat', 'Wijaya', 'Nasution', 'Maulana', 'Ramadhan', 'Nurhidayat',
+            'Wibowo', 'Utami', 'Fauziah', 'Pratiwi', 'Anggraini', 'Nuraini', 'Ardiansyah',
+            'Prasetya', 'Nurhalim', 'Kusnadi', 'Yuliani', 'Hartati', 'Astuti', 'Handayani',
+            'Wijayani', 'Komalasari', 'Kusuma', 'Rahadian', 'Hernawan', 'Halimah', 'Hikmat',
+            'Saputri', 'Putri', 'Sasmita', 'Indrawati', 'Iskandar', 'Alamsyah', 'Taufik', 'Husna',
+            'Hidayanti', 'Syahrani', 'Maulani', 'Firdaus', 'Mustofa', 'Yulianti', 'Salim', 'Wahyuni',
+            'Martadinata', 'Hardiansyah', 'Kuswandari', 'Darwis', 'Rahmat', 'Hamdan', 'Subekti',
+            'Rohim', 'Basuki', 'Subagyo', 'Sunarto', 'Handoko', 'Yulianto', 'Ismail', 'Fathurrahman',
+            'Suhendar', 'Saepudin', 'Mubarok', 'Solehudin', 'Sulaeman', 'Zulkifli', 'Sapriadi',
+            'Ridwan', 'Sutrisna', 'Salamah', 'Faridah', 'Kusnandar', 'Purwanto', 'Kuncoro',
+            'Wardani', 'Fitriawan', 'Harjono', 'Suwito', 'Amirudin', 'Sudrajat', 'Sumarna',
+            'Sudirman', 'Sugiarto', 'Sugiharto', 'Rosyid', 'Mardiana', 'Fitriah', 'Syamsudin'
+        ];
+        
+        $total = 300;
+        $current = count($data);
+        for ($i = 0; $i < $total - $current; $i++) {
+            $nama = $firstNames[array_rand($firstNames)] . ' ' . $lastNames[array_rand($lastNames)];
+            // Usia: mayoritas 40-60, sedikit 30-39 dan 61-80
+            $rand = rand(1, 100);
+            if ($rand <= 70) {
+                $usia = rand(40, 60);
+            } elseif ($rand <= 85) {
+                $usia = rand(30, 39);
+            } else {
+                $usia = rand(61, 80);
+            }
+            // Jumlah anak: mayoritas 2-4, ada 0,1,5+
+            $rand = rand(1, 100);
+            if ($rand <= 60) {
+                $jumlah_anak = rand(2, 4);
+            } elseif ($rand <= 75) {
+                $jumlah_anak = 1;
+            } elseif ($rand <= 80) {
+                $jumlah_anak = 0;
+            } elseif ($rand <= 95) {
+                $jumlah_anak = 5;
+            } else {
+                $jumlah_anak = rand(6, 9);
+            }
+            // Kelayakan rumah: mayoritas 2-3, ada 0,1,4
+            $rand = rand(1, 100);
+            if ($rand <= 40) {
+                $kelayakan_rumah = 2;
+            } elseif ($rand <= 80) {
+                $kelayakan_rumah = 3;
+            } elseif ($rand <= 85) {
+                $kelayakan_rumah = 1;
+            } elseif ($rand <= 90) {
+                $kelayakan_rumah = 0;
+            } else {
+                $kelayakan_rumah = 4;
+            }
+            // Pendapatan per bulan: mayoritas 1-2 juta, ada 0, sedikit 2.5 juta
+            $rand = rand(1, 100);
+            if ($rand <= 60) {
+                $pendapatan = 1000000 * rand(1, 2);
+            } elseif ($rand <= 80) {
+                $pendapatan = 0;
+            } else {
+                $pendapatan = 2500000;
+            }
+            Beneficiary::create([
+                'nik' => $generateNik(),
+                'nama' => $nama,
+                'alamat' => 'Alamat ' . $nama,
+                'no_hp' => '08' . rand(1000000000, 9999999999),
+                'usia' => $usia,
+                'jumlah_anak' => $jumlah_anak,
+                'kelayakan_rumah' => $kelayakan_rumah,
+                'pendapatan_perbulan' => $pendapatan,
+            ]);
+        }
     }
 }
