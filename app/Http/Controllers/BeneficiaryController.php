@@ -27,15 +27,17 @@ class BeneficiaryController extends Controller
         }
         
         // Mengambil distribusi cluster
-        $clusterCounts = ClusteringResult::select('cluster', DB::raw('count(*) as total'))
+        $clusterDistribution = ClusteringResult::select('cluster', DB::raw('count(*) as total'))
             ->groupBy('cluster')
             ->pluck('total', 'cluster')
             ->toArray();
         
-        // Jika belum ada data clustering, buat array kosong
-        if (empty($clusterCounts)) {
-            $clusterCounts = [0 => 0, 1 => 0, 2 => 0];
-        }
+        // Memastikan semua indeks cluster (0, 1, 2) tersedia
+        $clusterCounts = [
+            0 => $clusterDistribution[0] ?? 0,
+            1 => $clusterDistribution[1] ?? 0,
+            2 => $clusterDistribution[2] ?? 0
+        ];
         
         // Menghitung rata-rata fitur per cluster
         $clusterMeans = [];

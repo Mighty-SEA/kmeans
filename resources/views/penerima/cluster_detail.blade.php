@@ -197,7 +197,41 @@
         </div>
     </div>
     
+    <!-- Search Form -->
+    <div class="mb-6">
+        <form action="{{ route('statistic.cluster', $clusterIndex + 1) }}" method="GET" class="flex items-center">
+            <div class="relative flex-grow">
+                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <i class="fas fa-search text-gray-400"></i>
+                </div>
+                <input type="text" name="search" value="{{ $search ?? '' }}" placeholder="Cari berdasarkan nama, NIK, atau alamat..." class="block w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500">
+            </div>
+            <button type="submit" class="ml-3 px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2">
+                Cari
+            </button>
+            @if(isset($search) && $search)
+            <a href="{{ route('statistic.cluster', $clusterIndex + 1) }}" class="ml-2 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2">
+                Reset
+            </a>
+            @endif
+        </form>
+    </div>
+    
     <div class="overflow-x-auto rounded-lg shadow">
+        @if($cluster->isEmpty() && isset($search) && $search)
+        <div class="bg-gray-50 p-8 text-center">
+            <div class="text-gray-500 mb-2">
+                <i class="fas fa-search text-3xl"></i>
+            </div>
+            <h4 class="text-lg font-medium text-gray-700 mb-1">Tidak ada hasil</h4>
+            <p class="text-sm text-gray-500">Tidak ditemukan data dengan kata kunci "{{ $search }}"</p>
+            <div class="mt-4">
+                <a href="{{ route('statistic.cluster', $clusterIndex + 1) }}" class="inline-flex items-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100">
+                    <i class="fas fa-arrow-left mr-2"></i> Kembali ke semua data
+                </a>
+            </div>
+        </div>
+        @else
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
@@ -244,7 +278,7 @@
                         $normalizedItem = isset($normalizedData[$row->id]) ? $normalizedData[$row->id] : null;
                     @endphp
                     <tr class="hover:bg-gray-50 transition">
-                        <td class="px-6 py-4 text-sm text-gray-500">{{ $i+1 }}</td>
+                        <td class="px-6 py-4 text-sm text-gray-500">{{ ($cluster->currentPage() - 1) * $cluster->perPage() + $i + 1 }}</td>
                         <td class="px-6 py-4 font-medium text-indigo-600">{{ $row->nama ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $row->nik ?? '-' }}</td>
                         <td class="px-6 py-4 text-sm text-gray-700">{{ $row->alamat ?? '-' }}</td>
@@ -291,6 +325,26 @@
                 @endforeach
             </tbody>
         </table>
+        @endif
+    </div>
+    
+    <!-- Pagination Links -->
+    <div class="mt-6">
+        <div class="flex justify-between items-center mb-3">
+            <div class="text-sm text-gray-600">
+                @if(isset($search) && $search)
+                    Menampilkan hasil pencarian "{{ $search }}" - {{ $cluster->total() }} data ditemukan
+                @else
+                    Menampilkan {{ $cluster->firstItem() ?? 0 }} sampai {{ $cluster->lastItem() ?? 0 }} dari {{ $cluster->total() }} data
+                @endif
+            </div>
+            <div class="text-sm text-gray-600">
+                Halaman {{ $cluster->currentPage() }} dari {{ $cluster->lastPage() }}
+            </div>
+        </div>
+        <div class="pagination-container flex justify-center">
+            {{ $cluster->links('vendor.pagination.tailwind') }}
+        </div>
     </div>
 </div>
 @endsection

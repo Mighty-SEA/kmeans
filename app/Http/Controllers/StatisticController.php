@@ -282,23 +282,40 @@ class StatisticController extends Controller
         return sqrt($sum);
     }
 
-    public function recalculate()
+    public function recalculate(Request $request)
     {
         $data = Beneficiary::all(['id']);
         if ($data->count() < 3) {
             return redirect()->route('statistic.index')->with('error', 'Data kurang dari 3, tidak bisa melakukan clustering.');
         }
         
+        // Validasi input
+        $validated = $request->validate([
+            'num_clusters' => 'required|integer|min:2|max:10',
+            'normalization' => 'required|in:none,minmax,standard,robust',
+        ]);
+        
+        $numClusters = $validated['num_clusters'];
+        $normalization = $validated['normalization'];
+        
         // Hapus semua hasil clustering lama
         ClusteringResult::truncate();
         // Hapus semua hasil normalisasi lama
         NormalizationResult::truncate();
         
-        // Redirect ke halaman index
-        return redirect()->route('statistic.index')->with('success', 'Data clustering telah dihapus. Silahkan hitung clustering baru.');
+        // Ubah pesan sukses untuk memberikan informasi parameter yang digunakan
+        $normalizationName = [
+            'none' => 'Tanpa Normalisasi',
+            'minmax' => 'Min-Max',
+            'standard' => 'Standard (Z-Score)',
+            'robust' => 'Robust'
+        ][$normalization] ?? 'Robust';
+        
+        // Panggil doClustering dengan parameter yang sama
+        return $this->doClustering($request, "Clustering berhasil dihitung ulang dengan $numClusters cluster dan normalisasi $normalizationName.");
     }
 
-    public function showCluster($cluster)
+    public function showCluster($cluster, Request $request)
     {
         $clusterIndex = (int) $cluster - 1;
         
@@ -308,28 +325,45 @@ class StatisticController extends Controller
             return redirect()->route('statistic.index')->with('error', 'Cluster tidak valid.');
         }
         
-        $data = Beneficiary::join('clustering_results', 'beneficiaries.id', '=', 'clustering_results.beneficiary_id')
-            ->where('clustering_results.cluster', $clusterIndex)
-            ->get();
+        $search = $request->input('search');
+        
+        $query = Beneficiary::join('clustering_results', 'beneficiaries.id', '=', 'clustering_results.beneficiary_id')
+            ->where('clustering_results.cluster', $clusterIndex);
             
-        if ($data->isEmpty()) {
+        // Tambahkan pencarian jika ada
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%")
+                  ->orWhere('alamat', 'like', "%{$search}%");
+            });
+        }
+        
+        $data = $query->paginate(10)->withQueryString(); // Menambahkan withQueryString agar pagination tetap membawa parameter search
+            
+        if ($data->isEmpty() && !$search) {
             return redirect()->route('statistic.index')->with('error', 'Tidak ada data dalam cluster ini.');
         }
         
+        // Ambil semua data untuk statistik (tanpa pagination dan search)
+        $allClusterData = Beneficiary::join('clustering_results', 'beneficiaries.id', '=', 'clustering_results.beneficiary_id')
+            ->where('clustering_results.cluster', $clusterIndex)
+            ->get();
+        
         // Ambil data normalisasi
-        $normalizedData = NormalizationResult::whereIn('beneficiary_id', $data->pluck('id'))->get()
+        $normalizedData = NormalizationResult::whereIn('beneficiary_id', $allClusterData->pluck('id'))->get()
             ->keyBy('beneficiary_id');
         
         // Hitung statistik untuk cluster ini
-        $usiaValues = $data->pluck('usia')->map(function($item) { return (float) $item; })->toArray();
-        $anakValues = $data->pluck('jumlah_anak')->map(function($item) { return (float) $item; })->toArray();
-        $rumahValues = $data->pluck('kelayakan_rumah')->map(function($item) { 
+        $usiaValues = $allClusterData->pluck('usia')->map(function($item) { return (float) $item; })->toArray();
+        $anakValues = $allClusterData->pluck('jumlah_anak')->map(function($item) { return (float) $item; })->toArray();
+        $rumahValues = $allClusterData->pluck('kelayakan_rumah')->map(function($item) { 
             return is_numeric($item) ? (float) $item : (float) preg_replace('/[^0-9.]/', '', $item);
         })->toArray();
-        $pendapatanValues = $data->pluck('pendapatan_perbulan')->map(function($item) { return (float) $item; })->toArray();
+        $pendapatanValues = $allClusterData->pluck('pendapatan_perbulan')->map(function($item) { return (float) $item; })->toArray();
         
         // Hitung silhouette stats jika ada
-        $silhouetteValues = $data->pluck('silhouette')->filter()->toArray();
+        $silhouetteValues = $allClusterData->pluck('silhouette')->filter()->toArray();
         $silhouetteStats = !empty($silhouetteValues) ? [
             'min' => min($silhouetteValues),
             'max' => max($silhouetteValues),
@@ -376,7 +410,8 @@ class StatisticController extends Controller
             'normalizedData' => $normalizedData,
             'clusterStats' => $clusterStats,
             'silhouetteStats' => $silhouetteStats,
-            'total' => $data->count()
+            'total' => $allClusterData->count(),
+            'search' => $search
         ]);
     }
 
@@ -430,7 +465,7 @@ class StatisticController extends Controller
      * @param Request $request
      * @return \Illuminate\Http\RedirectResponse
      */
-    public function doClustering(Request $request)
+    public function doClustering(Request $request, $successMessage = null)
     {
         // Validasi input
         $validated = $request->validate([
@@ -540,6 +575,6 @@ class StatisticController extends Controller
                 'pendapatan_perbulan_normalized' => $normalizedData[$i]['pendapatan_perbulan_normalized']
             ]);
         }
-        return redirect()->route('statistic.index')->with('success', "Clustering berhasil dilakukan dengan $numClusters cluster.");
+        return redirect()->route('statistic.index')->with('success', $successMessage ?? "Clustering berhasil dilakukan dengan $numClusters cluster.");
     }
 } 

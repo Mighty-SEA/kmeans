@@ -43,12 +43,41 @@
                 </div>
                 
                 @if(isset($clustered) && $clustered)
-                <form action="{{ route('statistic.recalculate') }}" method="POST" class="mb-4 md:mb-0 md:ml-2">
-                    @csrf
-                    <button type="submit" class="flex items-center px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-md">
-                        <i class="fas fa-sync-alt mr-2"></i> Hitung Ulang Clustering
-                    </button>
-                </form>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
+                    <form action="{{ route('statistic.recalculate') }}" method="POST" class="flex flex-col md:flex-row items-end gap-4">
+                        @csrf
+                        <div>
+                            <label for="num_clusters" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Cluster:</label>
+                            <div class="relative">
+                                <select id="num_clusters" name="num_clusters" class="block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                    @for ($i = 2; $i <= min(10, isset($dataCount) ? $dataCount : 10); $i++)
+                                        <option value="{{ $i }}" {{ $clusterCount == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                    @endfor
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label for="normalization" class="block text-sm font-medium text-gray-700 mb-1">Metode Normalisasi:</label>
+                            <div class="relative">
+                                <select id="normalization" name="normalization" class="block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                    <option value="none">Tanpa Normalisasi</option>
+                                    <option value="minmax">Min-Max</option>
+                                    <option value="standard">Standard (Z-Score)</option>
+                                    <option value="robust">Robust</option>
+                                </select>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
+                                    <i class="fas fa-chevron-down"></i>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="flex items-center px-5 py-2.5 rounded-lg bg-blue-600 text-white font-medium hover:bg-blue-700 transition shadow-md">
+                            <i class="fas fa-sync-alt mr-2"></i> Hitung Ulang Clustering
+                        </button>
+                    </form>
+                </div>
                 @else
                 <div class="bg-gray-50 p-4 rounded-lg border border-gray-200 shadow-sm">
                     <form action="{{ route('statistic.clustering') }}" method="POST" class="flex flex-col md:flex-row items-end gap-4">
@@ -146,7 +175,7 @@
                     </div>
                     
                     <div class="border-t border-gray-100 pt-4">
-                        <a href="{{ route('statistic.cluster', $key) }}" class="flex items-center justify-center px-4 py-2 rounded bg-gray-50 text-gray-700 hover:bg-gray-100 transition w-full">
+                        <a href="{{ route('statistic.cluster', $key + 1) }}" class="flex items-center justify-center px-4 py-2 rounded bg-gray-50 text-gray-700 hover:bg-gray-100 transition w-full">
                             <i class="fas fa-eye mr-2"></i> Lihat Detail
                         </a>
                     </div>
@@ -339,7 +368,7 @@
                         </div>
                         
                         <div class="mt-6">
-                            <a href="{{ route('statistic.cluster', $key) }}" class="block w-full text-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition">
+                            <a href="{{ route('statistic.cluster', $key + 1) }}" class="block w-full text-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition">
                                 Detail Anggota Cluster
                             </a>
                         </div>

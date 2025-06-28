@@ -197,6 +197,26 @@
 
 @push('scripts')
 <script>
+// Menyiapkan data dari PHP ke variabel JavaScript
+var clusterCount0 = {{ $clusterCounts[0] }};
+var clusterCount1 = {{ $clusterCounts[1] }};
+var clusterCount2 = {{ $clusterCounts[2] }};
+
+var clusterMean0Usia = {{ isset($clusterMeans[0]) ? $clusterMeans[0]['usia'] : 0 }};
+var clusterMean0JumlahAnak = {{ isset($clusterMeans[0]) ? $clusterMeans[0]['jumlah_anak'] : 0 }};
+var clusterMean0KelayakanRumah = {{ isset($clusterMeans[0]) ? $clusterMeans[0]['kelayakan_rumah'] : 0 }};
+var clusterMean0Pendapatan = {{ isset($clusterMeans[0]) ? $clusterMeans[0]['pendapatan'] : 0 }};
+
+var clusterMean1Usia = {{ isset($clusterMeans[1]) ? $clusterMeans[1]['usia'] : 0 }};
+var clusterMean1JumlahAnak = {{ isset($clusterMeans[1]) ? $clusterMeans[1]['jumlah_anak'] : 0 }};
+var clusterMean1KelayakanRumah = {{ isset($clusterMeans[1]) ? $clusterMeans[1]['kelayakan_rumah'] : 0 }};
+var clusterMean1Pendapatan = {{ isset($clusterMeans[1]) ? $clusterMeans[1]['pendapatan'] : 0 }};
+
+var clusterMean2Usia = {{ isset($clusterMeans[2]) ? $clusterMeans[2]['usia'] : 0 }};
+var clusterMean2JumlahAnak = {{ isset($clusterMeans[2]) ? $clusterMeans[2]['jumlah_anak'] : 0 }};
+var clusterMean2KelayakanRumah = {{ isset($clusterMeans[2]) ? $clusterMeans[2]['kelayakan_rumah'] : 0 }};
+var clusterMean2Pendapatan = {{ isset($clusterMeans[2]) ? $clusterMeans[2]['pendapatan'] : 0 }};
+
 document.addEventListener('DOMContentLoaded', function() {
     const colors = ['rgba(248, 113, 113, 0.8)', 'rgba(96, 165, 250, 0.8)', 'rgba(52, 211, 153, 0.8)'];
     const borderColors = ['rgb(220, 38, 38)', 'rgb(37, 99, 235)', 'rgb(5, 150, 105)'];
@@ -208,11 +228,7 @@ document.addEventListener('DOMContentLoaded', function() {
         data: {
             labels: ['Cluster 1', 'Cluster 2', 'Cluster 3'],
             datasets: [{
-                data: [
-                    {{ $clusterCounts[0] ?? 0 }},
-                    {{ $clusterCounts[1] ?? 0 }},
-                    {{ $clusterCounts[2] ?? 0 }}
-                ],
+                data: [clusterCount0, clusterCount1, clusterCount2],
                 backgroundColor: colors,
                 borderColor: borderColors,
                 borderWidth: 2,
@@ -275,9 +291,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 {
                     label: 'Cluster 1',
                     data: [
-                        {{ isset($clusterMeans[0]) ? $clusterMeans[0]['usia'] : 0 }},
-                        {{ isset($clusterMeans[0]) ? $clusterMeans[0]['jumlah_anak'] : 0 }},
-                        {{ isset($clusterMeans[0]) ? $clusterMeans[0]['kelayakan_rumah'] : 0 }}
+                        clusterMean0Usia,
+                        clusterMean0JumlahAnak,
+                        clusterMean0KelayakanRumah
                     ],
                     backgroundColor: colors[0],
                     borderColor: borderColors[0],
@@ -287,9 +303,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 {
                     label: 'Cluster 2',
                     data: [
-                        {{ isset($clusterMeans[1]) ? $clusterMeans[1]['usia'] : 0 }},
-                        {{ isset($clusterMeans[1]) ? $clusterMeans[1]['jumlah_anak'] : 0 }},
-                        {{ isset($clusterMeans[1]) ? $clusterMeans[1]['kelayakan_rumah'] : 0 }}
+                        clusterMean1Usia,
+                        clusterMean1JumlahAnak,
+                        clusterMean1KelayakanRumah
                     ],
                     backgroundColor: colors[1],
                     borderColor: borderColors[1],
@@ -299,9 +315,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 {
                     label: 'Cluster 3',
                     data: [
-                        {{ isset($clusterMeans[2]) ? $clusterMeans[2]['usia'] : 0 }},
-                        {{ isset($clusterMeans[2]) ? $clusterMeans[2]['jumlah_anak'] : 0 }},
-                        {{ isset($clusterMeans[2]) ? $clusterMeans[2]['kelayakan_rumah'] : 0 }}
+                        clusterMean2Usia,
+                        clusterMean2JumlahAnak,
+                        clusterMean2KelayakanRumah
                     ],
                     backgroundColor: colors[2],
                     borderColor: borderColors[2],
@@ -380,9 +396,9 @@ document.addEventListener('DOMContentLoaded', function() {
             datasets: [{
                 label: 'Rata-rata Pendapatan (Rp)',
                 data: [
-                    {{ isset($clusterMeans[0]) ? $clusterMeans[0]['pendapatan'] : 0 }},
-                    {{ isset($clusterMeans[1]) ? $clusterMeans[1]['pendapatan'] : 0 }},
-                    {{ isset($clusterMeans[2]) ? $clusterMeans[2]['pendapatan'] : 0 }}
+                    clusterMean0Pendapatan,
+                    clusterMean1Pendapatan,
+                    clusterMean2Pendapatan
                 ],
                 backgroundColor: colors,
                 borderColor: borderColors,
