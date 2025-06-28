@@ -56,7 +56,7 @@ class BeneficiaryController extends Controller
             ];
         }
         
-        return view('welcome', compact(
+        return view('dashboard', compact(
             'totalPenerima',
             'latestData',
             'clusterCounts',

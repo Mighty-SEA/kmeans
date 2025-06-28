@@ -22,7 +22,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/', [BeneficiaryController::class, 'dashboard']);
     Route::resource('beneficiary', BeneficiaryController::class);
     Route::get('/statistic', [StatisticController::class, 'index'])->name('statistic.index');
-    Route::get('/statistic/cluster/{cluster}', [App\Http\Controllers\StatisticController::class, 'showCluster'])->name('statistic.cluster');
+    Route::get('/statistic/cluster/{cluster}', [StatisticController::class, 'showCluster'])->name('statistic.cluster');
     Route::post('/statistic/recalculate', [StatisticController::class, 'recalculate'])->name('statistic.recalculate');
     Route::post('/statistic/clustering', [StatisticController::class, 'doClustering'])->name('statistic.clustering');
     Route::post('beneficiary-export', [BeneficiaryController::class, 'exportExcel'])->name('beneficiary.export');

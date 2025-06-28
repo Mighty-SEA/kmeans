@@ -18,7 +18,7 @@ class StatisticController extends Controller
     {
         $data = Beneficiary::all(['id', 'nama', 'nik', 'alamat', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
         if ($data->count() < 3) {
-            return view('beneficiaries.statistics', [
+            return view('statistics.statistics', [
                 'clusters' => [],
                 'message' => 'Data kurang dari 3, tidak bisa melakukan clustering.'
             ]);
@@ -165,7 +165,7 @@ class StatisticController extends Controller
             }
             $overallSilhouette = !empty($allSilhouettes) ? Stats::mean($allSilhouettes) : 0;
             
-            return view('beneficiaries.statistics', [
+            return view('statistics.statistics', [
                 'clusters' => $result,
                 'message' => null,
                 'scatterData' => $scatterData,
@@ -179,7 +179,7 @@ class StatisticController extends Controller
             ]);
         } else {
             // Belum ada hasil cluster, tampilkan halaman tanpa clustering
-            return view('beneficiaries.statistics', [
+            return view('statistics.statistics', [
                 'clusters' => [],
                 'message' => null,
                 'scatterData' => [],
@@ -405,7 +405,7 @@ class StatisticController extends Controller
             ]
         ];
         
-        return view('beneficiaries.cluster_detail', [
+        return view('statistics.cluster_detail', [
             'clusterIndex' => $clusterIndex,
             'cluster' => $data,
             'normalizedData' => $normalizedData,
