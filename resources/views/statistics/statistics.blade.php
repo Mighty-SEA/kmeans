@@ -182,6 +182,26 @@
                         </div>
                     </div>
                     
+                    <!-- Statistik Cluster -->
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <div class="text-xs">
+                            <p class="text-gray-500">Rata-rata Usia</p>
+                            <p class="font-medium text-gray-800">{{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['usia'] : 0, 1) }}</p>
+                        </div>
+                        <div class="text-xs">
+                            <p class="text-gray-500">Rata-rata Jumlah Anak</p>
+                            <p class="font-medium text-gray-800">{{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['jumlah_anak'] : 0, 1) }}</p>
+                        </div>
+                        <div class="text-xs">
+                            <p class="text-gray-500">Rata-rata Kelayakan</p>
+                            <p class="font-medium text-gray-800">{{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['kelayakan_rumah'] : 0, 1) }}</p>
+                        </div>
+                        <div class="text-xs">
+                            <p class="text-gray-500">Rata-rata Pendapatan</p>
+                            <p class="font-medium text-gray-800">Rp {{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['pendapatan'] : 0, 0, ',', '.') }}</p>
+                        </div>
+                    </div>
+                    
                     <div class="border-t border-gray-100 pt-4">
                         <a href="{{ route('statistic.cluster', $key + 1) }}" class="flex items-center justify-center px-4 py-2 rounded bg-gray-50 text-gray-700 hover:bg-gray-100 transition w-full">
                             <i class="fas fa-eye mr-2"></i> Lihat Detail
@@ -335,53 +355,6 @@
                         </tbody>
                     </table>
                 </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                @foreach($clusters as $key => $cluster)
-                    <div class="bg-white rounded-lg shadow-md p-8">
-                        <div class="flex justify-between items-center mb-6">
-                            <h3 class="text-xl font-medium text-gray-700">
-                                @php
-                                    $clusterColors = ['red', 'blue', 'green', 'purple', 'pink', 'yellow', 'indigo', 'teal', 'orange', 'gray'];
-                                    $colorIndex = min($key, count($clusterColors) - 1);
-                                    $bgClass = 'bg-' . $clusterColors[$colorIndex] . '-100';
-                                    $textClass = 'text-' . $clusterColors[$colorIndex] . '-600';
-                                @endphp
-                                <span class="inline-flex items-center justify-center w-8 h-8 rounded-full mr-2 {{ $bgClass }} {{ $textClass }}">
-                                    {{ $key + 1 }}
-                                </span>
-                                Cluster {{ $key + 1 }}
-                            </h3>
-                            <span class="text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">{{ count($cluster) }} data</span>
-                        </div>
-                        
-                        <div class="space-y-3">
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
-                                <span class="text-sm font-medium text-gray-500">Rata-rata Usia</span>
-                                <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['usia'], 1) }}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
-                                <span class="text-sm font-medium text-gray-500">Rata-rata Jumlah Anak</span>
-                                <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['jumlah_anak'], 1) }}</span>
-                            </div>
-                            <div class="flex justify-between border-b border-gray-100 pb-2">
-                                <span class="text-sm font-medium text-gray-500">Rata-rata Kelayakan</span>
-                                <span class="text-sm font-medium text-gray-800">{{ number_format($clusterMeans[$key]['kelayakan_rumah'], 1) }}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-sm font-medium text-gray-500">Rata-rata Pendapatan</span>
-                                <span class="text-sm font-medium text-gray-800">Rp {{ number_format($clusterMeans[$key]['pendapatan'], 0, ',', '.') }}</span>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-6">
-                            <a href="{{ route('statistic.cluster', $key + 1) }}" class="block w-full text-center px-4 py-2 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition">
-                                Detail Anggota Cluster
-                            </a>
-                        </div>
-                    </div>
-                @endforeach
             </div>
             @else
             <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
