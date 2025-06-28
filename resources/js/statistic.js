@@ -58,9 +58,31 @@ document.addEventListener('DOMContentLoaded', function() {
         
         if (xAxis === 'cluster') {
             // Default view - fitur pada sumbu x, cluster sebagai bars
+            // Kita perlu mengubah data pendapatan agar skalanya sesuai dengan fitur lain
+            const modifiedDatasets = [];
+            
+            for (let i = 0; i < barDatasets.length; i++) {
+                const originalData = barDatasets[i].data;
+                // Clone dataset asli
+                const newDataset = {
+                    label: barDatasets[i].label,
+                    backgroundColor: barDatasets[i].backgroundColor,
+                    borderColor: barDatasets[i].borderColor,
+                    borderWidth: barDatasets[i].borderWidth,
+                    // Buat array data baru dengan pendapatan yang diskalakan
+                    data: [
+                        originalData[0], // usia
+                        originalData[1], // jumlah anak
+                        originalData[2], // kelayakan rumah
+                        originalData[3] / 1000 // pendapatan dibagi 1000 agar skalanya sesuai
+                    ]
+                };
+                modifiedDatasets.push(newDataset);
+            }
+            
             return {
-                labels: features.map(f => fieldLabels[f]),
-                datasets: barDatasets
+                labels: features.map(f => f === 'pendapatan' ? fieldLabels[f] + ' (÷1000)' : fieldLabels[f]),
+                datasets: modifiedDatasets
             };
         } else {
             // Selected feature on x-axis, clusters as different bars
@@ -113,7 +135,8 @@ document.addEventListener('DOMContentLoaded', function() {
                         title: {
                             display: true,
                             text: xAxis === 'cluster' ? 'Nilai' : fieldLabels[xAxis]
-                        }
+                        },
+                        suggestedMax: getSuggestedMax(xAxis)
                     }
                 },
                 plugins: {
@@ -125,6 +148,17 @@ document.addEventListener('DOMContentLoaded', function() {
                         display: true,
                         text: xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan ${fieldLabels[xAxis]} per Cluster`,
                         font: { size: 16 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                if (xAxis === 'cluster' && context.dataIndex === 3) {
+                                    const value = context.raw * 1000;
+                                    return `${context.dataset.label}: ${formatNumber(value)}`;
+                                }
+                                return `${context.dataset.label}: ${context.formattedValue}`;
+                            }
+                        }
                     }
                 }
             }
@@ -137,7 +171,57 @@ document.addEventListener('DOMContentLoaded', function() {
         barChart.options.scales.x.title.text = xAxis === 'cluster' ? 'Fitur' : 'Cluster';
         barChart.options.scales.y.title.text = xAxis === 'cluster' ? 'Nilai' : fieldLabels[xAxis];
         barChart.options.plugins.title.text = xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan ${fieldLabels[xAxis]} per Cluster`;
+        barChart.options.scales.y.suggestedMax = getSuggestedMax(xAxis);
+        barChart.options.plugins.tooltip.callbacks.label = function(context) {
+            if (xAxis === 'cluster' && context.dataIndex === 3) {
+                const value = context.raw * 1000;
+                return `${context.dataset.label}: ${formatNumber(value)}`;
+            }
+            return `${context.dataset.label}: ${context.formattedValue}`;
+        };
         barChart.update();
+    }
+    
+    // Fungsi untuk mendapatkan nilai maksimum yang disarankan untuk sumbu Y
+    function getSuggestedMax(xAxis) {
+        if (xAxis === 'cluster') {
+            // Jika mode cluster, kita perlu mencari nilai maksimum dari semua fitur
+            // Pendapatan sudah dibagi 1000, jadi kita bisa langsung membandingkan
+            let maxValues = [];
+            
+            // Untuk setiap cluster
+            for (let i = 0; i < barDatasets.length; i++) {
+                const originalData = barDatasets[i].data;
+                // Ambil nilai usia, jumlah anak, kelayakan rumah
+                maxValues.push(originalData[0]); // usia
+                maxValues.push(originalData[1]); // jumlah anak
+                maxValues.push(originalData[2]); // kelayakan rumah
+                maxValues.push(originalData[3] / 1000); // pendapatan dibagi 1000
+            }
+            
+            // Kembalikan nilai maksimum + 20% untuk margin
+            return Math.max(...maxValues) * 1.2;
+        } else if (xAxis === 'pendapatan') {
+            // Untuk pendapatan, biarkan Chart.js menentukan skala otomatis
+            return undefined;
+        } else {
+            // Untuk fitur lainnya, cari nilai maksimum dari fitur tersebut di semua cluster
+            const features = ['usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan'];
+            const featureIndex = features.indexOf(xAxis);
+            
+            if (featureIndex !== -1) {
+                const values = barDatasets.map(dataset => dataset.data[featureIndex]);
+                // Kembalikan nilai maksimum + 20% untuk margin
+                return Math.max(...values) * 1.2;
+            }
+            
+            return undefined;
+        }
+    }
+    
+    // Fungsi untuk memformat angka dengan pemisah ribuan
+    function formatNumber(value) {
+        return new Intl.NumberFormat().format(value);
     }
     
     // Initialize bar chart
