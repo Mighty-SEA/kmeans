@@ -50,32 +50,112 @@ document.addEventListener('DOMContentLoaded', function() {
     // Bar Chart
     const barCtx = document.getElementById('barChart').getContext('2d');
     const barDatasets = window.statisticData.barDatasets;
-
-    new Chart(barCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Usia', 'Jumlah Anak', 'Kelayakan Rumah', 'Pendapatan'],
-            datasets: barDatasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: { grid: { display: false } },
-                y: { beginAtZero: true }
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: { padding: 20, font: { size: 14 } }
+    const fieldLabels = window.statisticData.fieldLabels;
+    let barChart;
+    
+    function getBarChartData(xAxis) {
+        const features = ['usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan'];
+        
+        if (xAxis === 'cluster') {
+            // Default view - fitur pada sumbu x, cluster sebagai bars
+            return {
+                labels: features.map(f => fieldLabels[f]),
+                datasets: barDatasets
+            };
+        } else {
+            // Selected feature on x-axis, clusters as different bars
+            // Reorganize data untuk menampilkan cluster pada sumbu x dan fitur sebagai bars
+            // Kecuali fitur yang dipilih sebagai sumbu x
+            
+            const datasets = [];
+            const featureIndex = features.indexOf(xAxis);
+            
+            if (featureIndex !== -1) {
+                // Untuk setiap fitur kecuali yang dipilih sebagai sumbu x
+                features.forEach((feature, idx) => {
+                    if (feature !== xAxis) {
+                        // Buat dataset baru untuk fitur ini
+                        const data = [];
+                        
+                        // Ambil nilai fitur ini dari setiap cluster
+                        for (let i = 0; i < barDatasets.length; i++) {
+                            data.push(barDatasets[i].data[idx]);
+                        }
+                        
+                        datasets.push({
+                            label: fieldLabels[feature],
+                            data: data,
+                            backgroundColor: backgroundColors[datasets.length],
+                            borderColor: borderColors[datasets.length],
+                            borderWidth: 2
+                        });
+                    }
+                });
+            }
+            
+            return {
+                labels: clusterLabels,
+                datasets: datasets
+            };
+        }
+    }
+    
+    function initBarChart() {
+        const xAxis = document.getElementById('barXAxis').value;
+        barChart = new Chart(barCtx, {
+            type: 'bar',
+            data: getBarChartData(xAxis),
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: { 
+                        grid: { display: false },
+                        title: { 
+                            display: true, 
+                            text: xAxis === 'cluster' ? 'Fitur' : fieldLabels[xAxis]
+                        }
+                    },
+                    y: { 
+                        beginAtZero: true,
+                        title: {
+                            display: true,
+                            text: xAxis === 'cluster' ? 'Nilai' : 'Nilai Rata-rata'
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, font: { size: 14 } }
+                    },
+                    title: {
+                        display: true,
+                        text: xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan Fitur berdasarkan ${fieldLabels[xAxis]}`,
+                        font: { size: 16 }
+                    }
                 }
             }
-        }
-    });
+        });
+    }
+    
+    function updateBarChart() {
+        const xAxis = document.getElementById('barXAxis').value;
+        barChart.data = getBarChartData(xAxis);
+        barChart.options.scales.x.title.text = xAxis === 'cluster' ? 'Fitur' : fieldLabels[xAxis];
+        barChart.options.scales.y.title.text = xAxis === 'cluster' ? 'Nilai' : 'Nilai Rata-rata';
+        barChart.options.plugins.title.text = xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan Fitur berdasarkan ${fieldLabels[xAxis]}`;
+        barChart.update();
+    }
+    
+    // Initialize bar chart
+    initBarChart();
+    
+    // Add event listener for bar chart x-axis change
+    document.getElementById('barXAxis').addEventListener('change', updateBarChart);
 
     // Scatter Chart
     const scatterData = window.statisticData.scatterData;
-    const fieldLabels = window.statisticData.fieldLabels;
     const clusterCount = window.statisticData.clusterCount;
 
     function getDatasets(xField, yField) {

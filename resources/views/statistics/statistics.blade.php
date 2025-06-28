@@ -282,6 +282,18 @@
                 </div>
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                     <h4 class="text-lg font-medium text-gray-800 mb-4">Perbandingan Rata-rata Fitur</h4>
+                    <div class="mb-6 bg-gray-50 p-4 rounded-lg">
+                        <div class="flex flex-wrap gap-6 items-center">
+                            <label for="barXAxis" class="font-medium text-gray-700">Sumbu X:</label>
+                            <select id="barXAxis" class="border rounded-lg px-4 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[180px]">
+                                <option value="cluster">Cluster</option>
+                                <option value="usia">Usia</option>
+                                <option value="jumlah_anak">Jumlah Anak</option>
+                                <option value="kelayakan_rumah">Kelayakan Rumah</option>
+                                <option value="pendapatan">Pendapatan</option>
+                            </select>
+                        </div>
+                    </div>
                     <div class="h-[350px]">
                         <canvas id="barChart"></canvas>
                     </div>
@@ -435,8 +447,8 @@ window.statisticData = {
                 {{ $clusterMeans[$i]['kelayakan_rumah'] ?? 0 }},
                 {{ $clusterMeans[$i]['pendapatan'] ?? 0 }}
             ],
-            backgroundColor: 'rgba(248, 113, 113, 0.7)',
-            borderColor: 'rgb(220, 38, 38)',
+            backgroundColor: @if($i == 0) 'rgba(248, 113, 113, 0.7)' @elseif($i == 1) 'rgba(96, 165, 250, 0.7)' @elseif($i == 2) 'rgba(52, 211, 153, 0.7)' @elseif($i == 3) 'rgba(167, 139, 250, 0.7)' @elseif($i == 4) 'rgba(249, 168, 212, 0.7)' @elseif($i == 5) 'rgba(251, 191, 36, 0.7)' @elseif($i == 6) 'rgba(129, 140, 248, 0.7)' @elseif($i == 7) 'rgba(45, 212, 191, 0.7)' @elseif($i == 8) 'rgba(249, 115, 22, 0.7)' @else 'rgba(156, 163, 175, 0.7)' @endif,
+            borderColor: @if($i == 0) 'rgb(220, 38, 38)' @elseif($i == 1) 'rgb(37, 99, 235)' @elseif($i == 2) 'rgb(5, 150, 105)' @elseif($i == 3) 'rgb(124, 58, 237)' @elseif($i == 4) 'rgb(236, 72, 153)' @elseif($i == 5) 'rgb(245, 158, 11)' @elseif($i == 6) 'rgb(67, 56, 202)' @elseif($i == 7) 'rgb(20, 184, 166)' @elseif($i == 8) 'rgb(234, 88, 12)' @else 'rgb(107, 114, 128)' @endif,
             borderWidth: 2
         }{{ $i < $clusterCount-1 ? ',' : '' }}
         @endfor
@@ -448,6 +460,7 @@ window.statisticData = {
         kelayakan_rumah: 'Kelayakan Rumah',
         pendapatan: 'Pendapatan',
         silhouette: 'Silhouette Score',
+        cluster: 'Cluster'
     },
     clusterCount: {{ $clusterCount }}
 };
