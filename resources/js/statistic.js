@@ -64,33 +64,25 @@ document.addEventListener('DOMContentLoaded', function() {
             };
         } else {
             // Selected feature on x-axis, clusters as different bars
-            // Reorganize data untuk menampilkan cluster pada sumbu x dan fitur sebagai bars
-            // Kecuali fitur yang dipilih sebagai sumbu x
+            // Jika fitur dipilih sebagai sumbu X, hanya tampilkan fitur tersebut untuk setiap cluster
             
             const datasets = [];
             const featureIndex = features.indexOf(xAxis);
             
             if (featureIndex !== -1) {
-                // Untuk setiap fitur kecuali yang dipilih sebagai sumbu x
-                features.forEach((feature, idx) => {
-                    if (feature !== xAxis) {
-                        // Buat dataset baru untuk fitur ini
-                        const data = [];
-                        
-                        // Ambil nilai fitur ini dari setiap cluster
-                        for (let i = 0; i < barDatasets.length; i++) {
-                            data.push(barDatasets[i].data[idx]);
-                        }
-                        
-                        datasets.push({
-                            label: fieldLabels[feature],
-                            data: data,
-                            backgroundColor: backgroundColors[datasets.length],
-                            borderColor: borderColors[datasets.length],
-                            borderWidth: 2
-                        });
-                    }
+                // Buat dataset untuk fitur yang dipilih
+                datasets.push({
+                    label: fieldLabels[xAxis],
+                    data: barDatasets.map(dataset => dataset.data[featureIndex]),
+                    backgroundColor: backgroundColors[0],
+                    borderColor: borderColors[0],
+                    borderWidth: 2
                 });
+                
+                return {
+                    labels: clusterLabels,
+                    datasets: datasets
+                };
             }
             
             return {
@@ -113,14 +105,14 @@ document.addEventListener('DOMContentLoaded', function() {
                         grid: { display: false },
                         title: { 
                             display: true, 
-                            text: xAxis === 'cluster' ? 'Fitur' : fieldLabels[xAxis]
+                            text: xAxis === 'cluster' ? 'Fitur' : 'Cluster'
                         }
                     },
                     y: { 
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: xAxis === 'cluster' ? 'Nilai' : 'Nilai Rata-rata'
+                            text: xAxis === 'cluster' ? 'Nilai' : fieldLabels[xAxis]
                         }
                     }
                 },
@@ -131,7 +123,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     title: {
                         display: true,
-                        text: xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan Fitur berdasarkan ${fieldLabels[xAxis]}`,
+                        text: xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan ${fieldLabels[xAxis]} per Cluster`,
                         font: { size: 16 }
                     }
                 }
@@ -142,9 +134,9 @@ document.addEventListener('DOMContentLoaded', function() {
     function updateBarChart() {
         const xAxis = document.getElementById('barXAxis').value;
         barChart.data = getBarChartData(xAxis);
-        barChart.options.scales.x.title.text = xAxis === 'cluster' ? 'Fitur' : fieldLabels[xAxis];
-        barChart.options.scales.y.title.text = xAxis === 'cluster' ? 'Nilai' : 'Nilai Rata-rata';
-        barChart.options.plugins.title.text = xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan Fitur berdasarkan ${fieldLabels[xAxis]}`;
+        barChart.options.scales.x.title.text = xAxis === 'cluster' ? 'Fitur' : 'Cluster';
+        barChart.options.scales.y.title.text = xAxis === 'cluster' ? 'Nilai' : fieldLabels[xAxis];
+        barChart.options.plugins.title.text = xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan ${fieldLabels[xAxis]} per Cluster`;
         barChart.update();
     }
     
