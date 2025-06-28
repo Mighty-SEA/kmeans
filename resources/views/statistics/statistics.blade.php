@@ -281,18 +281,15 @@
                     </div>
                 </div>
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
-                    <h4 class="text-lg font-medium text-gray-800 mb-4">Perbandingan Rata-rata Fitur</h4>
-                    <div class="mb-6 bg-gray-50 p-4 rounded-lg">
-                        <div class="flex flex-wrap gap-6 items-center">
-                            <label for="barXAxis" class="font-medium text-gray-700">Sumbu X:</label>
-                            <select id="barXAxis" class="border rounded-lg px-4 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[180px]">
-                                <option value="cluster">Cluster</option>
-                                <option value="usia">Usia</option>
-                                <option value="jumlah_anak">Jumlah Anak</option>
-                                <option value="kelayakan_rumah">Kelayakan Rumah</option>
-                                <option value="pendapatan">Pendapatan</option>
-                            </select>
-                        </div>
+                    <div class="flex justify-between items-center mb-4">
+                        <h4 class="text-lg font-medium text-gray-800">Perbandingan Rata-rata Fitur</h4>
+                        <select id="barXAxis" class="border rounded-lg px-4 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[180px]">
+                            <option value="cluster">Cluster</option>
+                            <option value="usia">Usia</option>
+                            <option value="jumlah_anak">Jumlah Anak</option>
+                            <option value="kelayakan_rumah">Kelayakan Rumah</option>
+                            <option value="pendapatan">Pendapatan</option>
+                        </select>
                     </div>
                     <div class="h-[350px]">
                         <canvas id="barChart"></canvas>
