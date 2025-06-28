@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Decision;
 
 use Illuminate\Http\Request;
 use App\Models\Beneficiary;
@@ -9,6 +9,7 @@ use App\Models\DecisionResult;
 use App\Models\DecisionResultItem;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
+use App\Http\Controllers\Controller;
 
 class DecisionController extends Controller
 {

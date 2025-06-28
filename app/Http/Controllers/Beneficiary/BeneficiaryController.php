@@ -1,7 +1,8 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Beneficiary;
 
+use App\Http\Controllers\Controller;
 use App\Models\Beneficiary;
 use App\Models\ClusteringResult;
 use Illuminate\Http\Request;

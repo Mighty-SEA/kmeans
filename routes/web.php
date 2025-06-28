@@ -1,11 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\BeneficiaryController;
-use App\Http\Controllers\StatisticController;
-use App\Http\Controllers\AuthController;
-use App\Http\Controllers\ProfileController;
-use App\Http\Controllers\DecisionController;
+use App\Http\Controllers\Beneficiary\BeneficiaryController;
+use App\Http\Controllers\Statistic\StatisticController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Profile\ProfileController;
+use App\Http\Controllers\Decision\DecisionController;
 
 // Authentication Routes
 Route::middleware(['guest'])->group(function () {
@@ -20,14 +20,14 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 // Protected Routes
 Route::middleware(['auth'])->group(function () {
     Route::get('/', [BeneficiaryController::class, 'dashboard']);
-    Route::resource('beneficiary', App\Http\Controllers\BeneficiaryController::class);
+    Route::resource('beneficiary', BeneficiaryController::class);
     Route::get('/statistic', [StatisticController::class, 'index'])->name('statistic.index');
     Route::get('/statistic/cluster/{cluster}', [App\Http\Controllers\StatisticController::class, 'showCluster'])->name('statistic.cluster');
     Route::post('/statistic/recalculate', [StatisticController::class, 'recalculate'])->name('statistic.recalculate');
     Route::post('/statistic/clustering', [StatisticController::class, 'doClustering'])->name('statistic.clustering');
-    Route::post('beneficiary-export', [App\Http\Controllers\BeneficiaryController::class, 'exportExcel'])->name('beneficiary.export');
-    Route::post('beneficiary-import', [App\Http\Controllers\BeneficiaryController::class, 'importExcel'])->name('beneficiary.import');
-    Route::delete('beneficiary-bulk-delete', [App\Http\Controllers\BeneficiaryController::class, 'bulkDelete'])->name('beneficiary.bulkDelete');
+    Route::post('beneficiary-export', [BeneficiaryController::class, 'exportExcel'])->name('beneficiary.export');
+    Route::post('beneficiary-import', [BeneficiaryController::class, 'importExcel'])->name('beneficiary.import');
+    Route::delete('beneficiary-bulk-delete', [BeneficiaryController::class, 'bulkDelete'])->name('beneficiary.bulkDelete');
     
     // Decision Panel Routes
     Route::get('/decision', [DecisionController::class, 'index'])->name('decision.index');
