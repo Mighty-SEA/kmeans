@@ -64,10 +64,26 @@ class BeneficiaryController extends Controller
         ));
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $penerima = Beneficiary::paginate(10); // 10 data per halaman
-        return view('beneficiaries.index', compact('penerima'));
+        $search = $request->input('search');
+        $perPage = $request->input('perPage', 10);
+        
+        $query = Beneficiary::query();
+        
+        // Filter berdasarkan pencarian
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('nama', 'like', "%{$search}%")
+                  ->orWhere('nik', 'like', "%{$search}%")
+                  ->orWhere('alamat', 'like', "%{$search}%")
+                  ->orWhere('no_hp', 'like', "%{$search}%");
+            });
+        }
+        
+        $penerima = $query->paginate($perPage)->withQueryString();
+        
+        return view('beneficiaries.index', compact('penerima', 'search', 'perPage'));
     }
 
     public function create()
