@@ -49,27 +49,31 @@
                         <div>
                             <label for="num_clusters" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Cluster:</label>
                             <div class="relative">
-                                <select id="num_clusters" name="num_clusters" class="block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <select id="num_clusters" name="num_clusters" class="appearance-none block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                     @for ($i = 2; $i <= min(10, isset($dataCount) ? $dataCount : 10); $i++)
                                         <option value="{{ $i }}" {{ $clusterCount == $i ? 'selected' : '' }}>{{ $i }}</option>
                                     @endfor
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                    <i class="fas fa-chevron-down"></i>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </div>
                             </div>
                         </div>
                         <div>
                             <label for="normalization" class="block text-sm font-medium text-gray-700 mb-1">Metode Normalisasi:</label>
                             <div class="relative">
-                                <select id="normalization" name="normalization" class="block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <select id="normalization" name="normalization" class="appearance-none block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                     <option value="none">Tanpa Normalisasi</option>
                                     <option value="minmax">Min-Max</option>
                                     <option value="standard">Standard (Z-Score)</option>
                                     <option value="robust">Robust</option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                    <i class="fas fa-chevron-down"></i>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </div>
                             </div>
                         </div>
@@ -85,27 +89,31 @@
                         <div>
                             <label for="num_clusters" class="block text-sm font-medium text-gray-700 mb-1">Jumlah Cluster:</label>
                             <div class="relative">
-                                <select id="num_clusters" name="num_clusters" class="block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <select id="num_clusters" name="num_clusters" class="appearance-none block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                     @for ($i = 2; $i <= min(10, isset($dataCount) ? $dataCount : 10); $i++)
                                         <option value="{{ $i }}">{{ $i }}</option>
                                     @endfor
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                    <i class="fas fa-chevron-down"></i>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </div>
                             </div>
                         </div>
                         <div>
                             <label for="normalization" class="block text-sm font-medium text-gray-700 mb-1">Metode Normalisasi:</label>
                             <div class="relative">
-                                <select id="normalization" name="normalization" class="block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
+                                <select id="normalization" name="normalization" class="appearance-none block w-full rounded-lg border border-gray-300 py-2 pl-3 pr-10 text-base focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500">
                                     <option value="none">Tanpa Normalisasi</option>
                                     <option value="minmax">Min-Max</option>
                                     <option value="standard">Standard (Z-Score)</option>
                                     <option value="robust">Robust</option>
                                 </select>
-                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-500">
-                                    <i class="fas fa-chevron-down"></i>
+                                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-400">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                                    </svg>
                                 </div>
                             </div>
                         </div>
