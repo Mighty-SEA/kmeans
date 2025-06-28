@@ -66,12 +66,12 @@ class BeneficiaryController extends Controller
     public function index()
     {
         $penerima = Beneficiary::paginate(10); // 10 data per halaman
-        return view('penerima.index', compact('penerima'));
+        return view('beneficiaries.index', compact('penerima'));
     }
 
     public function create()
     {
-        return view('penerima.create');
+        return view('beneficiaries.create');
     }
 
     public function store(Request $request)
@@ -93,7 +93,7 @@ class BeneficiaryController extends Controller
     public function edit($id)
     {
         $penerima = Beneficiary::findOrFail($id);
-        return view('penerima.edit', compact('penerima'));
+        return view('beneficiaries.edit', compact('penerima'));
     }
 
     public function update(Request $request, $id)
