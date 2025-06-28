@@ -28,6 +28,10 @@ class StatisticController extends Controller
         $clustering = ClusteringResult::all();
         $clustered = $clustering->count() === $data->count();
         
+        // Ambil pengaturan clustering terakhir
+        $lastNumClusters = session('last_num_clusters', 3);
+        $lastNormalization = session('last_normalization', 'robust');
+        
         if ($clustered) {
             // Sudah ada hasil cluster, gunakan data ini
             $result = [0 => [], 1 => [], 2 => []];
@@ -176,6 +180,8 @@ class StatisticController extends Controller
                 'overallSilhouette' => $overallSilhouette,
                 'clustered' => $clustered,
                 'clusterCount' => $clusterCount,
+                'lastNumClusters' => $lastNumClusters,
+                'lastNormalization' => $lastNormalization,
             ]);
         } else {
             // Belum ada hasil cluster, tampilkan halaman tanpa clustering
@@ -190,6 +196,9 @@ class StatisticController extends Controller
                 'overallSilhouette' => 0,
                 'clustered' => false,
                 'dataCount' => $data->count(),
+                'lastNumClusters' => $lastNumClusters,
+                'lastNormalization' => $lastNormalization,
+                'clusterCount' => $lastNumClusters,
             ]);
         }
     }
@@ -298,6 +307,10 @@ class StatisticController extends Controller
         
         $numClusters = $validated['num_clusters'];
         $normalization = $validated['normalization'];
+        
+        // Simpan pengaturan terakhir ke session
+        session(['last_num_clusters' => $numClusters]);
+        session(['last_normalization' => $normalization]);
         
         // Hapus semua hasil clustering lama
         ClusteringResult::truncate();
@@ -476,6 +489,10 @@ class StatisticController extends Controller
         
         $numClusters = $validated['num_clusters'];
         $normalization = $validated['normalization'];
+        
+        // Simpan pengaturan terakhir ke session
+        session(['last_num_clusters' => $numClusters]);
+        session(['last_normalization' => $normalization]);
         
         $data = Beneficiary::all(['id', 'nama', 'nik', 'alamat', 'usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan_perbulan']);
         if ($data->count() < $numClusters) {
