@@ -170,7 +170,7 @@
                             </span>
                         </div>
                         <div class="w-full bg-gray-200 rounded-full h-1.5">
-                            <div class="h-1.5 rounded-full {{ $silhouetteValue > 0 ? $bgClass : 'bg-gray-300' }}" style="width: {{ min(max(($silhouetteValue + 1) / 2 * 100, 5), 100) }}%"></div>
+                            <div class="h-1.5 rounded-full {{ $silhouetteValue > 0 ? $bgClass : 'bg-gray-300' }}" style="width: {{ min(max(($silhouetteValue + 1) / 2 * 100, 5), 100) }}%;"></div>
                         </div>
                     </div>
                     
@@ -232,7 +232,7 @@
                                 @elseif($overallSilhouette > 0.25) bg-yellow-500
                                 @elseif($overallSilhouette > 0) bg-orange-500
                                 @else bg-red-500 @endif"
-                                style="width: {{ min(max(($overallSilhouette + 1) / 2 * 100, 5), 100) }}%">
+                                style="width: {{ min(max(($overallSilhouette + 1) / 2 * 100, 5), 100) }}%;">
                             </div>
                         </div>
                         <div class="flex justify-between text-xs text-gray-500 mt-1">
@@ -408,15 +408,19 @@
 @if(!$message)
 @push('scripts')
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    @if(isset($clustered) && $clustered)
-    // Pie Chart
-    const pieCtx = document.getElementById('pieChart').getContext('2d');
-    
-    // Buat labels dan data dinamis sesuai jumlah cluster
-    const clusterLabels = [];
-    const clusterData = [];
-    const backgroundColors = [
+window.statisticData = {
+    clustered: @json(isset($clustered) && $clustered),
+    clusterLabels: [
+        @for($i = 0; $i < $clusterCount; $i++)
+            'Cluster {{ $i + 1 }}'{{ $i < $clusterCount-1 ? ',' : '' }}
+        @endfor
+    ],
+    clusterData: [
+        @for($i = 0; $i < $clusterCount; $i++)
+            {{ $clusterCounts[$i] ?? 0 }}{{ $i < $clusterCount-1 ? ',' : '' }}
+        @endfor
+    ],
+    backgroundColors: [
         'rgba(248, 113, 113, 0.7)', // red
         'rgba(96, 165, 250, 0.7)',  // blue
         'rgba(52, 211, 153, 0.7)',  // green
@@ -427,8 +431,8 @@ document.addEventListener('DOMContentLoaded', function() {
         'rgba(45, 212, 191, 0.7)',  // teal
         'rgba(249, 115, 22, 0.7)',  // orange
         'rgba(156, 163, 175, 0.7)'  // gray
-    ];
-    const borderColors = [
+    ],
+    borderColors: [
         'rgb(220, 38, 38)',    // red
         'rgb(37, 99, 235)',    // blue
         'rgb(5, 150, 105)',    // green
@@ -439,57 +443,10 @@ document.addEventListener('DOMContentLoaded', function() {
         'rgb(20, 184, 166)',   // teal
         'rgb(234, 88, 12)',    // orange
         'rgb(107, 114, 128)'   // gray
-    ];
-    
-    @for($i = 0; $i < $clusterCount; $i++)
-        clusterLabels.push('Cluster {{ $i + 1 }}');
-        clusterData.push({{ $clusterCounts[$i] ?? 0 }});
-    @endfor
-    
-    new Chart(pieCtx, {
-        type: 'pie',
-        data: {
-            labels: clusterLabels,
-            datasets: [{
-                data: clusterData,
-                backgroundColor: backgroundColors.slice(0, {{ $clusterCount }}),
-                borderColor: borderColors.slice(0, {{ $clusterCount }}),
-                borderWidth: 2
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        font: {
-                            size: 14
-                        }
-                    }
-                },
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const value = context.raw;
-                            const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                            const percentage = Math.round((value / total) * 100);
-                            return `${value} data (${percentage}%)`;
-                        }
-                    }
-                }
-            }
-        }
-    });
-    
-    // Bar Chart
-    const barCtx = document.getElementById('barChart').getContext('2d');
-    const barDatasets = [];
-    
-    @for($i = 0; $i < $clusterCount; $i++)
-        barDatasets.push({
+    ],
+    barDatasets: [
+        @for($i = 0; $i < $clusterCount; $i++)
+        {
             label: 'Cluster {{ $i + 1 }}',
             data: [
                 {{ $clusterMeans[$i]['usia'] ?? 0 }},
@@ -497,131 +454,24 @@ document.addEventListener('DOMContentLoaded', function() {
                 {{ $clusterMeans[$i]['kelayakan_rumah'] ?? 0 }},
                 {{ $clusterMeans[$i]['pendapatan'] ?? 0 }}
             ],
-            backgroundColor: backgroundColors[{{ $i }}],
-            borderColor: borderColors[{{ $i }}],
+            backgroundColor: 'rgba(248, 113, 113, 0.7)',
+            borderColor: 'rgb(220, 38, 38)',
             borderWidth: 2
-        });
-    @endfor
-    
-    new Chart(barCtx, {
-        type: 'bar',
-        data: {
-            labels: ['Usia', 'Jumlah Anak', 'Kelayakan Rumah', 'Pendapatan'],
-            datasets: barDatasets
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    grid: {
-                        display: false
-                    }
-                },
-                y: {
-                    beginAtZero: true
-                }
-            },
-            plugins: {
-                legend: {
-                    position: 'bottom',
-                    labels: {
-                        padding: 20,
-                        font: {
-                            size: 14
-                        }
-                    }
-                }
-            }
-        }
-    });
-    
-    // Scatter Chart
-    const scatterData = @json($scatterData);
-    const fieldLabels = {
+        }{{ $i < $clusterCount-1 ? ',' : '' }}
+        @endfor
+    ],
+    scatterData: @json($scatterData),
+    fieldLabels: {
         usia: 'Usia',
         jumlah_anak: 'Jumlah Anak',
         kelayakan_rumah: 'Kelayakan Rumah',
         pendapatan: 'Pendapatan',
         silhouette: 'Silhouette Score',
-    };
-    
-    function getDatasets(xField, yField) {
-        const datasets = [];
-        
-        for (let i = 0; i < {{ $clusterCount }}; i++) {
-            datasets.push({
-                label: 'Cluster ' + (i+1),
-                data: scatterData.filter(d => d.cluster === i).map(d => {
-                    // Pastikan silhouette tersedia, jika tidak, gunakan 0
-                    if (xField === 'silhouette' || yField === 'silhouette') {
-                        if (d.silhouette === undefined) {
-                            d.silhouette = 0;
-                        }
-                    }
-                    return {
-                        x: Number(d[xField]),
-                        y: Number(d[yField]),
-                        nama: d.nama,
-                        silhouette: d.silhouette
-                    };
-                }),
-                backgroundColor: backgroundColors[i],
-                borderColor: borderColors[i],
-                borderWidth: 1,
-                pointRadius: 6,
-                pointHoverRadius: 8,
-            });
-        }
-        
-        return datasets;
-    }
-    
-    let xField = document.getElementById('xAxis').value;
-    let yField = document.getElementById('yAxis').value;
-    const scatterCtx = document.getElementById('scatterChart').getContext('2d');
-    let scatterChart = new Chart(scatterCtx, {
-        type: 'scatter',
-        data: { datasets: getDatasets(xField, yField) },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                tooltip: {
-                    callbacks: {
-                        label: function(context) {
-                            const d = context.raw;
-                            let label = d.nama + ' (' + fieldLabels[xField] + ': ' + d.x + ', ' + fieldLabels[yField] + ': ' + d.y;
-                            
-                            // Tambahkan silhouette score jika tersedia dan belum ditampilkan di sumbu
-                            if (d.silhouette !== undefined && xField !== 'silhouette' && yField !== 'silhouette') {
-                                label += ', Silhouette: ' + d.silhouette.toFixed(2);
-                            }
-                            
-                            return label + ')';
-                        }
-                    }
-                }
-            }
-        }
-    });
-    
-    // Handle axis change
-    document.getElementById('xAxis').addEventListener('change', updateScatterChart);
-    document.getElementById('yAxis').addEventListener('change', updateScatterChart);
-    
-    function updateScatterChart() {
-        xField = document.getElementById('xAxis').value;
-        yField = document.getElementById('yAxis').value;
-        
-        scatterChart.data.datasets = getDatasets(xField, yField);
-        scatterChart.options.scales.x.title = { display: true, text: fieldLabels[xField] };
-        scatterChart.options.scales.y.title = { display: true, text: fieldLabels[yField] };
-        scatterChart.update();
-    }
-    @endif
-});
+    },
+    clusterCount: {{ $clusterCount }}
+};
 </script>
+<script type="module" src="{{ Vite::asset('resources/js/statistic.js') }}"></script>
 @endpush
 @endif
 @endsection
