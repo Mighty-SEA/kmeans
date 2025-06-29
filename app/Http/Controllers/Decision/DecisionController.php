@@ -27,13 +27,58 @@ class DecisionController extends Controller
         if (empty($clusterCounts)) {
             $clusterCounts = [0 => 0, 1 => 0, 2 => 0];
         }
-        
+
+        // Ambil statistik cluster (mean, silhouette, prioritas)
+        $clusterMeans = [];
+        $avgSilhouettes = [];
+        foreach ($clusterCounts as $cluster => $count) {
+            $means = ClusteringResult::where('cluster', $cluster)
+                ->join('beneficiaries', 'clustering_results.beneficiary_id', '=', 'beneficiaries.id')
+                ->select(
+                    DB::raw('AVG(usia) as usia'),
+                    DB::raw('AVG(jumlah_anak) as jumlah_anak'),
+                    DB::raw('AVG(kelayakan_rumah) as kelayakan_rumah'),
+                    DB::raw('AVG(pendapatan_perbulan) as pendapatan'),
+                    DB::raw('AVG(silhouette) as silhouette')
+                )
+                ->first();
+            $clusterMeans[$cluster] = [
+                'usia' => (float) $means->usia,
+                'jumlah_anak' => (float) $means->jumlah_anak,
+                'kelayakan_rumah' => (float) $means->kelayakan_rumah,
+                'pendapatan' => (float) $means->pendapatan,
+            ];
+            $avgSilhouettes[$cluster] = (float) $means->silhouette;
+        }
+        // Hitung prioritas
+        $pendapatanArr = array_column($clusterMeans, 'pendapatan');
+        $kelayakanArr = array_column($clusterMeans, 'kelayakan_rumah');
+        $jumlahAnakArr = array_column($clusterMeans, 'jumlah_anak');
+        $needScores = [];
+        foreach ($clusterMeans as $idx => $mean) {
+            $pendapatan = $mean['pendapatan'] ?? 0;
+            $kelayakan = $mean['kelayakan_rumah'] ?? 0;
+            $jumlah_anak = $mean['jumlah_anak'] ?? 0;
+            $score = (max($pendapatanArr) - $pendapatan)
+                + (max($kelayakanArr) - $kelayakan)
+                + ($jumlah_anak - min($jumlahAnakArr));
+            $needScores[$idx] = $score;
+        }
+        arsort($needScores);
+        $rankMap = [];
+        $rank = 1;
+        foreach(array_keys($needScores) as $idx) {
+            $rankMap[$idx] = $rank++;
+        }
         // Ambil semua decision results untuk ditampilkan
         $decisionResults = DecisionResult::orderBy('created_at', 'desc')->get();
         
         return view('decision.index', [
             'clusterCounts' => $clusterCounts,
-            'decisionResults' => $decisionResults
+            'decisionResults' => $decisionResults,
+            'clusterMeans' => $clusterMeans,
+            'avgSilhouettes' => $avgSilhouettes,
+            'rankMap' => $rankMap
         ]);
     }
     

@@ -33,20 +33,85 @@
     <!-- Ringkasan Cluster -->
     <div class="mb-8">
         <h4 class="text-lg font-medium text-gray-700 mb-4">Ringkasan Cluster</h4>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            @foreach($clusterCounts as $cluster => $count)
-            <div class="border rounded-lg shadow-sm p-6 bg-white flex flex-col">
-                <div class="flex items-center mb-4">
-                    @php
-                        $colors = ['red', 'blue', 'green'];
-                        $color = $colors[$cluster] ?? 'gray';
-                    @endphp
-                    <div class="flex items-center justify-center w-12 h-12 rounded-full bg-{{ $color }}-100 text-{{ $color }}-600 mr-4">
-                        <i class="fas fa-users text-xl"></i>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
+            @foreach($clusterCounts as $key => $count)
+            <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
+                @php
+                    $clusterColors = ['red', 'blue', 'green', 'purple', 'pink', 'yellow', 'indigo', 'teal', 'orange', 'gray'];
+                    $colorIndex = min($key, count($clusterColors) - 1);
+                    $bgClass = 'bg-' . $clusterColors[$colorIndex] . '-100';
+                    $textClass = 'text-' . $clusterColors[$colorIndex] . '-600';
+                    $borderClass = 'border-' . $clusterColors[$colorIndex] . '-500';
+
+                    // Silhouette score color
+                    $silhouetteValue = isset($avgSilhouettes[$key]) ? $avgSilhouettes[$key] : 0;
+                    $silhouetteClass = 'text-gray-500';
+                    $silhouetteIcon = 'fa-minus';
+
+                    if ($silhouetteValue > 0.7) {
+                        $silhouetteClass = 'text-green-600';
+                        $silhouetteIcon = 'fa-check-circle';
+                    } elseif ($silhouetteValue > 0.5) {
+                        $silhouetteClass = 'text-blue-600';
+                        $silhouetteIcon = 'fa-check';
+                    } elseif ($silhouetteValue > 0.25) {
+                        $silhouetteClass = 'text-yellow-600';
+                        $silhouetteIcon = 'fa-exclamation-circle';
+                    } elseif ($silhouetteValue > 0) {
+                        $silhouetteClass = 'text-orange-600';
+                        $silhouetteIcon = 'fa-exclamation-triangle';
+                    } else {
+                        $silhouetteClass = 'text-red-600';
+                        $silhouetteIcon = 'fa-times-circle';
+                    }
+
+                    $prioritas = $rankMap[$key] ?? '-';
+                @endphp
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center">
+                        <div class="flex items-center justify-center w-12 h-12 rounded-full {{ $bgClass }} {{ $textClass }} mr-4">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-medium text-gray-800 mb-0">Cluster {{ $key + 1 }}</h4>
+                            <p class="text-sm text-gray-500 mb-0">{{ $count }} data</p>
+                        </div>
                     </div>
-                    <div>
-                        <h4 class="text-lg font-medium text-gray-800">Cluster {{ $cluster + 1 }}</h4>
-                        <p class="text-sm text-gray-500">{{ $count }} penerima</p>
+                    <div class="text-sm font-semibold text-indigo-700 bg-indigo-50 px-3 py-1 rounded">
+                        Prioritas: {{ $prioritas }}
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs font-medium text-gray-500">Silhouette Score:</span>
+                        <span class="text-xs font-medium {{ $silhouetteClass }}">
+                            <i class="fas {{ $silhouetteIcon }} mr-1"></i>
+                            {{ number_format($silhouetteValue, 2) }}
+                        </span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-1.5">
+                        <div class="h-1.5 rounded-full {{ $silhouetteValue > 0 ? $bgClass : 'bg-gray-300' }}" style="width: {{ min(max(($silhouetteValue + 1) / 2 * 100, 5), 100) }}%;"></div>
+                    </div>
+                </div>
+
+                <!-- Statistik Cluster -->
+                <div class="grid grid-cols-2 gap-2 mb-4">
+                    <div class="text-xs">
+                        <p class="text-gray-500">Rata-rata Usia</p>
+                        <p class="font-medium text-gray-800">{{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['usia'] : 0, 1) }}</p>
+                    </div>
+                    <div class="text-xs">
+                        <p class="text-gray-500">Rata-rata Jumlah Anak</p>
+                        <p class="font-medium text-gray-800">{{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['jumlah_anak'] : 0, 1) }}</p>
+                    </div>
+                    <div class="text-xs">
+                        <p class="text-gray-500">Rata-rata Kelayakan</p>
+                        <p class="font-medium text-gray-800">{{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['kelayakan_rumah'] : 0, 1) }}</p>
+                    </div>
+                    <div class="text-xs">
+                        <p class="text-gray-500">Rata-rata Pendapatan</p>
+                        <p class="font-medium text-gray-800">Rp {{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['pendapatan'] : 0, 0, ',', '.') }}</p>
                     </div>
                 </div>
             </div>
@@ -86,11 +151,27 @@
                             <td class="px-6 py-4">
                                 @php
                                     $colors = ['red', 'blue', 'green'];
-                                    $color = $colors[$result->cluster] ?? 'gray';
                                 @endphp
-                                <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
-                                    Cluster {{ $result->cluster + 1 }}
-                                </span>
+                                @if($result->cluster == -1)
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                        Cluster
+                                        @php
+                                            // Ambil cluster yang benar-benar terlibat dari DecisionResultItem
+                                            $usedClusters = \App\Models\ClusteringResult::whereIn('beneficiary_id',
+                                                \App\Models\DecisionResultItem::where('decision_result_id', $result->id)->pluck('beneficiary_id')
+                                            )->pluck('cluster')->unique()->sortDesc()->values();
+                                            $label = $usedClusters->map(fn($c) => $c+1)->implode(', ');
+                                        @endphp
+                                        {{ ' ' . $label }}
+                                    </span>
+                                @else
+                                    @php
+                                        $color = $colors[$result->cluster] ?? 'gray';
+                                    @endphp
+                                    <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                                        Cluster {{ $result->cluster + 1 }}
+                                    </span>
+                                @endif
                             </td>
                             <td class="px-6 py-4 text-sm text-gray-700">{{ $result->count }} orang</td>
                             <td class="px-6 py-4 text-sm text-gray-700">{{ $result->created_at->format('d M Y, H:i') }}</td>
