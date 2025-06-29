@@ -12,8 +12,11 @@
 */
 
 pest()->extend(Tests\TestCase::class)
- // ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
+    ->use(Illuminate\Foundation\Testing\RefreshDatabase::class)
     ->in('Feature');
+
+pest()->extend(PHPUnit\Framework\TestCase::class)
+    ->in('Unit');
 
 /*
 |--------------------------------------------------------------------------
@@ -30,6 +33,18 @@ expect()->extend('toBeOne', function () {
     return $this->toBe(1);
 });
 
+expect()->extend('toBeSuccessful', function () {
+    return $this->status()->toBe(200);
+});
+
+expect()->extend('toBeRedirect', function () {
+    return $this->status()->toBe(302);
+});
+
+expect()->extend('toHaveJsonStructure', function (array $structure) {
+    return $this->json()->toHaveStructure($structure);
+});
+
 /*
 |--------------------------------------------------------------------------
 | Functions
@@ -41,7 +56,49 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Membuat user dan login secara otomatis
+ */
+function actingAs($user = null)
 {
-    // ..
+    $user = $user ?: \App\Models\User::factory()->create();
+    
+    return test()->actingAs($user);
+}
+
+/**
+ * Membuat user dengan role admin dan login secara otomatis
+ */
+function actingAsAdmin()
+{
+    $admin = \App\Models\User::factory()->create([
+        'email' => 'admin@example.com',
+        // tambahkan field lain sesuai kebutuhan untuk admin
+    ]);
+    
+    return test()->actingAs($admin);
+}
+
+/**
+ * Helper untuk membuat data beneficiary untuk testing
+ */
+function createBeneficiary($attributes = [])
+{
+    return \App\Models\Beneficiary::factory()->create($attributes);
+}
+
+/**
+ * Helper untuk membuat beberapa data beneficiary untuk testing
+ */
+function createBeneficiaries($count = 3, $attributes = [])
+{
+    return \App\Models\Beneficiary::factory($count)->create($attributes);
+}
+
+/**
+ * Helper untuk membuat data clustering result untuk testing
+ */
+function createClusteringResult($attributes = [])
+{
+    return \App\Models\ClusteringResult::factory()->create($attributes);
 }

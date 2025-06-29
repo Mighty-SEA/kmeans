@@ -4,15 +4,23 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class DecisionResult extends Model
 {
+    use HasFactory;
+    
     protected $fillable = [
         'title',
         'description',
         'cluster',
         'count',
-        'notes'
+        'notes',
+        'user_id',
+        'sort_by',
+        'sort_direction',
+        'limit',
+        'result_data'
     ];
 
     /**
@@ -36,5 +44,13 @@ class DecisionResult extends Model
             'id',
             'beneficiary_id'
         );
+    }
+    
+    /**
+     * Get the user that owns this decision result
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
     }
 } 

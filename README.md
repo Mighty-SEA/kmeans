@@ -7,6 +7,85 @@
 <a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
 </p>
 
+# Aplikasi K-Means Clustering
+
+Aplikasi untuk melakukan clustering data penerima bantuan menggunakan algoritma K-Means.
+
+## Pengaturan Testing dengan Pest
+
+Proyek ini menggunakan Pest PHP untuk testing. Pest adalah framework testing yang elegan dan fokus pada developer experience.
+
+### Menjalankan Test
+
+Untuk menjalankan semua test:
+
+```bash
+php artisan test
+```
+
+Untuk menjalankan test tertentu:
+
+```bash
+php artisan test tests/Feature/AuthTest.php
+```
+
+Untuk menjalankan test dengan filter nama:
+
+```bash
+php artisan test --filter=beneficiary
+```
+
+### Struktur Test
+
+Test dibagi menjadi dua kategori:
+
+1. **Unit Tests** - Test untuk komponen individual (model, helper, dll)
+2. **Feature Tests** - Test untuk fitur aplikasi (controller, request, dll)
+
+### Helper Functions
+
+Beberapa helper functions telah disediakan di `tests/Pest.php`:
+
+```php
+// Login sebagai user
+actingAs($user = null);
+
+// Login sebagai admin
+actingAsAdmin();
+
+// Membuat data beneficiary
+createBeneficiary($attributes = []);
+
+// Membuat beberapa data beneficiary
+createBeneficiaries($count = 3, $attributes = []);
+```
+
+### Custom Expectations
+
+Beberapa custom expectations juga tersedia:
+
+```php
+expect($value)->toBeOne(); // Mengecek apakah nilai adalah 1
+expect($response)->toBeSuccessful(); // Mengecek apakah response berhasil (status 200)
+expect($response)->toBeRedirect(); // Mengecek apakah response adalah redirect (status 302)
+expect($response)->toHaveJsonStructure($structure); // Mengecek struktur JSON response
+```
+
+### Menulis Test Baru
+
+Untuk menulis test baru, cukup buat file baru di direktori `tests/Feature` atau `tests/Unit` dan gunakan sintaks Pest:
+
+```php
+<?php
+
+test('nama test', function () {
+    // Kode test disini
+    expect(true)->toBeTrue();
+});
+```
+
+Untuk informasi lebih lanjut tentang Pest, kunjungi [dokumentasi resmi Pest](https://pestphp.com/docs/writing-tests).
+
 ## About Laravel
 
 Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:

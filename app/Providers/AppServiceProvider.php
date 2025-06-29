@@ -6,6 +6,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use Faker\Factory as FakerFactory;
+use Faker\Generator as FakerGenerator;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,7 +16,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(FakerGenerator::class, function () {
+            $faker = FakerFactory::create(config('app.faker_locale', 'id_ID'));
+            
+            // Tambahkan formatter untuk nama dalam bahasa Indonesia
+            $faker->addProvider(new \Faker\Provider\id_ID\Person($faker));
+            
+            return $faker;
+        });
     }
 
     /**
