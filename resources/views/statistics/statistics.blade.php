@@ -127,6 +127,31 @@
             
             @if(isset($clustered) && $clustered)
             <!-- Ringkasan Cluster -->
+            @php
+                // Hitung skor kebutuhan bantuan untuk setiap cluster
+                $needScores = [];
+                $pendapatanArr = array_column($clusterMeans, 'pendapatan');
+                $kelayakanArr = array_column($clusterMeans, 'kelayakan_rumah');
+                $jumlahAnakArr = array_column($clusterMeans, 'jumlah_anak');
+                foreach($clusterMeans as $idx => $mean) {
+                    $pendapatan = $mean['pendapatan'] ?? 0;
+                    $kelayakan = $mean['kelayakan_rumah'] ?? 0;
+                    $jumlah_anak = $mean['jumlah_anak'] ?? 0;
+
+                    // Skor: pendapatan rendah (+), kelayakan rendah (+), jumlah anak banyak (+)
+                    $score = (max($pendapatanArr) - $pendapatan)
+                        + (max($kelayakanArr) - $kelayakan)
+                        + ($jumlah_anak - min($jumlahAnakArr));
+                    $needScores[$idx] = $score;
+                }
+                // Ranking skor (dari tertinggi ke terendah)
+                arsort($needScores);
+                $rankMap = [];
+                $rank = 1;
+                foreach(array_keys($needScores) as $idx) {
+                    $rankMap[$idx] = $rank++;
+                }
+            @endphp
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8">
                 @foreach($clusterCounts as $key => $count)
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
@@ -136,12 +161,12 @@
                         $bgClass = 'bg-' . $clusterColors[$colorIndex] . '-100';
                         $textClass = 'text-' . $clusterColors[$colorIndex] . '-600';
                         $borderClass = 'border-' . $clusterColors[$colorIndex] . '-500';
-                        
+
                         // Silhouette score color
                         $silhouetteValue = isset($avgSilhouettes[$key]) ? $avgSilhouettes[$key] : 0;
                         $silhouetteClass = 'text-gray-500';
                         $silhouetteIcon = 'fa-minus';
-                        
+
                         if ($silhouetteValue > 0.7) {
                             $silhouetteClass = 'text-green-600';
                             $silhouetteIcon = 'fa-check-circle';
@@ -158,17 +183,24 @@
                             $silhouetteClass = 'text-red-600';
                             $silhouetteIcon = 'fa-times-circle';
                         }
+
+                        $prioritas = $rankMap[$key] ?? '-';
                     @endphp
-                    <div class="flex items-center mb-4">
-                        <div class="flex items-center justify-center w-12 h-12 rounded-full {{ $bgClass }} {{ $textClass }} mr-4">
-                            <i class="fas fa-users text-xl"></i>
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="flex items-center">
+                            <div class="flex items-center justify-center w-12 h-12 rounded-full {{ $bgClass }} {{ $textClass }} mr-4">
+                                <i class="fas fa-users text-xl"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-medium text-gray-800 mb-0">Cluster {{ $key + 1 }}</h4>
+                                <p class="text-sm text-gray-500 mb-0">{{ $count }} data</p>
+                            </div>
                         </div>
-                        <div>
-                            <h4 class="text-lg font-medium text-gray-800">Cluster {{ $key + 1 }}</h4>
-                            <p class="text-sm text-gray-500">{{ $count }} data</p>
+                        <div class="text-sm font-semibold text-indigo-700 bg-indigo-50 px-3 py-1 rounded">
+                            Prioritas: {{ $prioritas }}
                         </div>
                     </div>
-                    
+
                     <div class="mb-4">
                         <div class="flex items-center justify-between mb-1">
                             <span class="text-xs font-medium text-gray-500">Silhouette Score:</span>
@@ -181,7 +213,7 @@
                             <div class="h-1.5 rounded-full {{ $silhouetteValue > 0 ? $bgClass : 'bg-gray-300' }}" style="width: {{ min(max(($silhouetteValue + 1) / 2 * 100, 5), 100) }}%;"></div>
                         </div>
                     </div>
-                    
+
                     <!-- Statistik Cluster -->
                     <div class="grid grid-cols-2 gap-2 mb-4">
                         <div class="text-xs">
@@ -201,7 +233,6 @@
                             <p class="font-medium text-gray-800">Rp {{ number_format(isset($clusterMeans[$key]) ? $clusterMeans[$key]['pendapatan'] : 0, 0, ',', '.') }}</p>
                         </div>
                     </div>
-                    
                     <div class="border-t border-gray-100 pt-4">
                         <a href="{{ route('statistic.cluster', $key + 1) }}" class="flex items-center justify-center px-4 py-2 rounded bg-gray-50 text-gray-700 hover:bg-gray-100 transition w-full">
                             <i class="fas fa-eye mr-2"></i> Lihat Detail
