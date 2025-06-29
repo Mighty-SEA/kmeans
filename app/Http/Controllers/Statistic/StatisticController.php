@@ -62,6 +62,20 @@ class StatisticController extends Controller
                 }
             }
             
+            // Ambil data normalisasi
+            $normalizedData = NormalizationResult::all()->keyBy('beneficiary_id');
+            
+            // Tambahkan data normalisasi ke scatterData
+            foreach ($scatterData as &$item) {
+                $beneficiaryId = $data->firstWhere('nama', $item['nama'])->id;
+                if (isset($normalizedData[$beneficiaryId])) {
+                    $item['usia_normalized'] = $normalizedData[$beneficiaryId]->usia_normalized;
+                    $item['jumlah_anak_normalized'] = $normalizedData[$beneficiaryId]->jumlah_anak_normalized;
+                    $item['kelayakan_rumah_normalized'] = $normalizedData[$beneficiaryId]->kelayakan_rumah_normalized;
+                    $item['pendapatan_normalized'] = $normalizedData[$beneficiaryId]->pendapatan_perbulan_normalized;
+                }
+            }
+            
             // Pie chart: jumlah anggota per cluster
             $clusterCounts = array_map('count', $result);
             
@@ -88,6 +102,41 @@ class StatisticController extends Controller
                     'jumlah_anak' => Stats::mean($anakValues),
                     'kelayakan_rumah' => Stats::mean($rumahValues),
                     'pendapatan' => Stats::mean($pendapatanValues),
+                ];
+            }
+            
+            // Hitung rata-rata nilai normalisasi per cluster
+            $normalizedClusterMeans = [];
+            foreach ($result as $key => $cluster) {
+                if (count($cluster) === 0) {
+                    $normalizedClusterMeans[$key] = [
+                        'usia' => 0,
+                        'jumlah_anak' => 0,
+                        'kelayakan_rumah' => 0,
+                        'pendapatan' => 0,
+                    ];
+                    continue;
+                }
+                
+                $usiaValues = [];
+                $anakValues = [];
+                $rumahValues = [];
+                $pendapatanValues = [];
+                
+                foreach ($cluster as $beneficiary) {
+                    if (isset($normalizedData[$beneficiary->id])) {
+                        $usiaValues[] = $normalizedData[$beneficiary->id]->usia_normalized;
+                        $anakValues[] = $normalizedData[$beneficiary->id]->jumlah_anak_normalized;
+                        $rumahValues[] = $normalizedData[$beneficiary->id]->kelayakan_rumah_normalized;
+                        $pendapatanValues[] = $normalizedData[$beneficiary->id]->pendapatan_perbulan_normalized;
+                    }
+                }
+                
+                $normalizedClusterMeans[$key] = [
+                    'usia' => !empty($usiaValues) ? Stats::mean($usiaValues) : 0,
+                    'jumlah_anak' => !empty($anakValues) ? Stats::mean($anakValues) : 0,
+                    'kelayakan_rumah' => !empty($rumahValues) ? Stats::mean($rumahValues) : 0,
+                    'pendapatan' => !empty($pendapatanValues) ? Stats::mean($pendapatanValues) : 0,
                 ];
             }
             
@@ -175,6 +224,7 @@ class StatisticController extends Controller
                 'scatterData' => $scatterData,
                 'clusterCounts' => $clusterCounts,
                 'clusterMeans' => $clusterMeans,
+                'normalizedClusterMeans' => $normalizedClusterMeans,
                 'clusterStats' => $clusterStats,
                 'avgSilhouettes' => $avgSilhouettes,
                 'overallSilhouette' => $overallSilhouette,
@@ -191,6 +241,7 @@ class StatisticController extends Controller
                 'scatterData' => [],
                 'clusterCounts' => [],
                 'clusterMeans' => [],
+                'normalizedClusterMeans' => [],
                 'clusterStats' => [],
                 'avgSilhouettes' => [],
                 'overallSilhouette' => 0,

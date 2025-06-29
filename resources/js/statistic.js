@@ -51,51 +51,92 @@ document.addEventListener('DOMContentLoaded', function() {
     const barCtx = document.getElementById('barChart').getContext('2d');
     const barDatasets = window.statisticData.barDatasets;
     const fieldLabels = window.statisticData.fieldLabels;
+    const normalizedClusterMeans = window.statisticData.normalizedClusterMeans || [];
     let barChart;
+    let isNormalized = false; // Status normalisasi
     
     function getBarChartData(xAxis) {
         const features = ['usia', 'jumlah_anak', 'kelayakan_rumah', 'pendapatan'];
+        const normalizedFeatures = ['usia_normalized', 'jumlah_anak_normalized', 'kelayakan_rumah_normalized', 'pendapatan_normalized'];
         
         if (xAxis === 'cluster') {
             // Default view - fitur pada sumbu x, cluster sebagai bars
-            // Kita perlu mengubah data pendapatan agar skalanya sesuai dengan fitur lain
             const modifiedDatasets = [];
             
             for (let i = 0; i < barDatasets.length; i++) {
                 const originalData = barDatasets[i].data;
+                let newData;
+                
+                if (isNormalized && normalizedClusterMeans && normalizedClusterMeans[i]) {
+                    // Gunakan data normalisasi dari database
+                    newData = [
+                        normalizedClusterMeans[i].usia,
+                        normalizedClusterMeans[i].jumlah_anak,
+                        normalizedClusterMeans[i].kelayakan_rumah,
+                        normalizedClusterMeans[i].pendapatan
+                    ];
+                } else {
+                    // Jika normalisasi tidak diaktifkan, gunakan skala yang sesuai
+                    newData = [
+                        originalData[0], // usia
+                        originalData[1], // jumlah anak
+                        originalData[2], // kelayakan rumah
+                        originalData[3] / 1000 // pendapatan dibagi 1000 agar skalanya sesuai
+                    ];
+                }
+                
                 // Clone dataset asli
                 const newDataset = {
                     label: barDatasets[i].label,
                     backgroundColor: barDatasets[i].backgroundColor,
                     borderColor: barDatasets[i].borderColor,
                     borderWidth: barDatasets[i].borderWidth,
-                    // Buat array data baru dengan pendapatan yang diskalakan
-                    data: [
-                        originalData[0], // usia
-                        originalData[1], // jumlah anak
-                        originalData[2], // kelayakan rumah
-                        originalData[3] / 1000 // pendapatan dibagi 1000 agar skalanya sesuai
-                    ]
+                    data: newData
                 };
                 modifiedDatasets.push(newDataset);
             }
             
+            const labels = features.map(f => {
+                if (isNormalized) {
+                    return fieldLabels[f + '_normalized'];
+                } else if (f === 'pendapatan') {
+                    return fieldLabels[f] + ' (÷1000)';
+                } else {
+                    return fieldLabels[f];
+                }
+            });
+            
             return {
-                labels: features.map(f => f === 'pendapatan' ? fieldLabels[f] + ' (÷1000)' : fieldLabels[f]),
+                labels: labels,
                 datasets: modifiedDatasets
             };
         } else {
             // Selected feature on x-axis, clusters as different bars
-            // Jika fitur dipilih sebagai sumbu X, hanya tampilkan fitur tersebut untuk setiap cluster
-            
             const datasets = [];
             const featureIndex = features.indexOf(xAxis);
             
             if (featureIndex !== -1) {
-                // Buat dataset untuk fitur yang dipilih
+                let data;
+                
+                if (isNormalized && normalizedClusterMeans) {
+                    // Gunakan data normalisasi dari database
+                    data = normalizedClusterMeans.map(means => {
+                        switch(xAxis) {
+                            case 'usia': return means.usia;
+                            case 'jumlah_anak': return means.jumlah_anak;
+                            case 'kelayakan_rumah': return means.kelayakan_rumah;
+                            case 'pendapatan': return means.pendapatan;
+                            default: return 0;
+                        }
+                    });
+                } else {
+                    // Jika normalisasi tidak diaktifkan, gunakan nilai asli
+                    data = barDatasets.map(dataset => dataset.data[featureIndex]);
+                }
+                
                 datasets.push({
-                    label: fieldLabels[xAxis],
-                    data: barDatasets.map(dataset => dataset.data[featureIndex]),
+                    label: isNormalized ? fieldLabels[xAxis + '_normalized'] : fieldLabels[xAxis],
+                    data: data,
                     backgroundColor: backgroundColors[0],
                     borderColor: borderColors[0],
                     borderWidth: 2
@@ -134,8 +175,9 @@ document.addEventListener('DOMContentLoaded', function() {
                         beginAtZero: true,
                         title: {
                             display: true,
-                            text: xAxis === 'cluster' ? 'Nilai' : fieldLabels[xAxis]
+                            text: getYAxisTitle(xAxis)
                         },
+                        // Sesuaikan skala berdasarkan fitur yang dipilih
                         suggestedMax: getSuggestedMax(xAxis)
                     }
                 },
@@ -146,17 +188,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     title: {
                         display: true,
-                        text: xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan ${fieldLabels[xAxis]} per Cluster`,
+                        text: getChartTitle(xAxis),
                         font: { size: 16 }
                     },
                     tooltip: {
                         callbacks: {
                             label: function(context) {
-                                if (xAxis === 'cluster' && context.dataIndex === 3) {
-                                    const value = context.raw * 1000;
-                                    return `${context.dataset.label}: ${formatNumber(value)}`;
-                                }
-                                return `${context.dataset.label}: ${context.formattedValue}`;
+                                return getTooltipLabel(context, xAxis);
                             }
                         }
                     }
@@ -165,25 +203,57 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    function getYAxisTitle(xAxis) {
+        if (xAxis === 'cluster') {
+            return isNormalized ? 'Nilai Normalisasi' : 'Nilai';
+        } else {
+            return isNormalized ? fieldLabels[xAxis + '_normalized'] : fieldLabels[xAxis];
+        }
+    }
+    
+    function getChartTitle(xAxis) {
+        if (xAxis === 'cluster') {
+            return isNormalized ? 'Perbandingan Fitur per Cluster (Normalisasi)' : 'Perbandingan Fitur per Cluster';
+        } else {
+            return isNormalized ? `Perbandingan ${fieldLabels[xAxis + '_normalized']} per Cluster` : `Perbandingan ${fieldLabels[xAxis]} per Cluster`;
+        }
+    }
+    
+    function getTooltipLabel(context, xAxis) {
+        // Jika mode cluster dan fitur adalah pendapatan, dan tidak dinormalisasi
+        if (xAxis === 'cluster' && context.dataIndex === 3 && !isNormalized) {
+            const value = context.raw * 1000;
+            return `${context.dataset.label}: ${formatNumber(value)}`;
+        }
+        
+        return `${context.dataset.label}: ${context.formattedValue}`;
+    }
+    
     function updateBarChart() {
         const xAxis = document.getElementById('barXAxis').value;
         barChart.data = getBarChartData(xAxis);
         barChart.options.scales.x.title.text = xAxis === 'cluster' ? 'Fitur' : 'Cluster';
-        barChart.options.scales.y.title.text = xAxis === 'cluster' ? 'Nilai' : fieldLabels[xAxis];
-        barChart.options.plugins.title.text = xAxis === 'cluster' ? 'Perbandingan Fitur per Cluster' : `Perbandingan ${fieldLabels[xAxis]} per Cluster`;
+        barChart.options.scales.y.title.text = getYAxisTitle(xAxis);
+        barChart.options.plugins.title.text = getChartTitle(xAxis);
+        
+        // Update skala sumbu Y
         barChart.options.scales.y.suggestedMax = getSuggestedMax(xAxis);
+        
+        // Update tooltip callback
         barChart.options.plugins.tooltip.callbacks.label = function(context) {
-            if (xAxis === 'cluster' && context.dataIndex === 3) {
-                const value = context.raw * 1000;
-                return `${context.dataset.label}: ${formatNumber(value)}`;
-            }
-            return `${context.dataset.label}: ${context.formattedValue}`;
+            return getTooltipLabel(context, xAxis);
         };
+        
         barChart.update();
     }
     
     // Fungsi untuk mendapatkan nilai maksimum yang disarankan untuk sumbu Y
     function getSuggestedMax(xAxis) {
+        // Jika normalisasi diaktifkan, skala untuk data normalisasi
+        if (isNormalized) {
+            return 3; // Biasanya data normalisasi berada dalam rentang -3 hingga 3 (untuk z-score)
+        }
+        
         if (xAxis === 'cluster') {
             // Jika mode cluster, kita perlu mencari nilai maksimum dari semua fitur
             // Pendapatan sudah dibagi 1000, jadi kita bisa langsung membandingkan
@@ -229,6 +299,12 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listener for bar chart x-axis change
     document.getElementById('barXAxis').addEventListener('change', updateBarChart);
+    
+    // Add event listener for normalization toggle
+    document.getElementById('normalizeBarChart').addEventListener('change', function() {
+        isNormalized = this.checked;
+        updateBarChart();
+    });
 
     // Scatter Chart
     const scatterData = window.statisticData.scatterData;
@@ -243,9 +319,25 @@ document.addEventListener('DOMContentLoaded', function() {
                     if (xField === 'silhouette' || yField === 'silhouette') {
                         if (d.silhouette === undefined) d.silhouette = 0;
                     }
+                    
+                    // Handle normalized fields
+                    let xValue = d[xField];
+                    let yValue = d[yField];
+                    
+                    // If field is normalized version, use that data
+                    if (xField.endsWith('_normalized') && d[xField] === undefined) {
+                        const baseField = xField.replace('_normalized', '');
+                        xValue = d[baseField + '_normalized'];
+                    }
+                    
+                    if (yField.endsWith('_normalized') && d[yField] === undefined) {
+                        const baseField = yField.replace('_normalized', '');
+                        yValue = d[baseField + '_normalized'];
+                    }
+                    
                     return {
-                        x: Number(d[xField]),
-                        y: Number(d[yField]),
+                        x: Number(xValue),
+                        y: Number(yValue),
                         nama: d.nama,
                         silhouette: d.silhouette
                     };

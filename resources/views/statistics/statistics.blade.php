@@ -283,13 +283,22 @@
                 <div class="bg-white border border-gray-200 rounded-lg shadow-sm p-6">
                     <div class="flex justify-between items-center mb-4">
                         <h4 class="text-lg font-medium text-gray-800">Perbandingan Rata-rata Fitur</h4>
-                        <select id="barXAxis" class="border rounded-lg px-4 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[180px]">
-                            <option value="cluster">Cluster</option>
-                            <option value="usia">Usia</option>
-                            <option value="jumlah_anak">Jumlah Anak</option>
-                            <option value="kelayakan_rumah">Kelayakan Rumah</option>
-                            <option value="pendapatan">Pendapatan</option>
-                        </select>
+                        <div class="flex items-center space-x-4">
+                            <div class="flex items-center">
+                                <span class="mr-2 text-sm text-gray-600">Normalisasi:</span>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="checkbox" id="normalizeBarChart" class="sr-only peer">
+                                    <div class="relative w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                                </label>
+                            </div>
+                            <select id="barXAxis" class="border rounded-lg px-4 py-2 bg-white text-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 min-w-[180px]">
+                                <option value="cluster">Cluster</option>
+                                <option value="usia">Usia</option>
+                                <option value="jumlah_anak">Jumlah Anak</option>
+                                <option value="kelayakan_rumah">Kelayakan Rumah</option>
+                                <option value="pendapatan">Pendapatan</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="h-[350px]">
                         <canvas id="barChart"></canvas>
@@ -309,6 +318,10 @@
                             <option value="kelayakan_rumah">Kelayakan Rumah</option>
                             <option value="pendapatan">Pendapatan</option>
                             <option value="silhouette">Silhouette Score</option>
+                            <option value="usia_normalized">Usia (Normalisasi)</option>
+                            <option value="jumlah_anak_normalized">Jumlah Anak (Normalisasi)</option>
+                            <option value="kelayakan_rumah_normalized">Kelayakan Rumah (Normalisasi)</option>
+                            <option value="pendapatan_normalized">Pendapatan (Normalisasi)</option>
                         </select>
                         
                         <label for="yAxis" class="font-medium text-gray-700 ml-4">Sumbu Y:</label>
@@ -318,6 +331,10 @@
                             <option value="jumlah_anak">Jumlah Anak</option>
                             <option value="kelayakan_rumah">Kelayakan Rumah</option>
                             <option value="silhouette">Silhouette Score</option>
+                            <option value="usia_normalized">Usia (Normalisasi)</option>
+                            <option value="jumlah_anak_normalized">Jumlah Anak (Normalisasi)</option>
+                            <option value="kelayakan_rumah_normalized">Kelayakan Rumah (Normalisasi)</option>
+                            <option value="pendapatan_normalized">Pendapatan (Normalisasi)</option>
                         </select>
                     </div>
                 </div>
@@ -457,9 +474,14 @@ window.statisticData = {
         kelayakan_rumah: 'Kelayakan Rumah',
         pendapatan: 'Pendapatan',
         silhouette: 'Silhouette Score',
-        cluster: 'Cluster'
+        cluster: 'Cluster',
+        usia_normalized: 'Usia (Normalisasi)',
+        jumlah_anak_normalized: 'Jumlah Anak (Normalisasi)',
+        kelayakan_rumah_normalized: 'Kelayakan Rumah (Normalisasi)',
+        pendapatan_normalized: 'Pendapatan (Normalisasi)'
     },
-    clusterCount: {{ $clusterCount }}
+    clusterCount: {{ $clusterCount }},
+    normalizedClusterMeans: @json($normalizedClusterMeans)
 };
 </script>
 <script type="module" src="{{ Vite::asset('resources/js/statistic.js') }}"></script>
