@@ -62,16 +62,16 @@
                 </div>
                 
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-2" for="cluster">Pilih Cluster<span class="text-red-500">*</span></label>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="cluster">Pilih Prioritas<span class="text-red-500">*</span></label>
                     <select id="cluster" name="cluster" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('cluster') border-red-500 @enderror" required>
-                        <option value="">Pilih Cluster</option>
+                        <option value="">Pilih Prioritas</option>
+                        <option value="all" {{ old('cluster') == 'all' ? 'selected' : '' }}>Sesuai Prioritas</option>
                         @foreach($clusterCounts as $cluster => $count)
                             @php
-                                $colors = ['red', 'blue', 'green'];
-                                $color = $colors[$cluster] ?? 'gray';
+                                $prioritas = $rankMap[$cluster] ?? '-';
                             @endphp
                             <option value="{{ $cluster }}" {{ old('cluster') == $cluster ? 'selected' : '' }}>
-                                Cluster {{ $cluster + 1 }} ({{ $count }} penerima)
+                                Prioritas {{ $prioritas }} ({{ $count }} penerima)
                             </option>
                         @endforeach
                     </select>

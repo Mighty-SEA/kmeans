@@ -51,9 +51,51 @@ class DecisionController extends Controller
         if (empty($clusterCounts)) {
             return redirect()->route('decision.index')->with('error', 'Belum ada data clustering. Silakan lakukan clustering terlebih dahulu.');
         }
-        
+
+        // Ambil rata-rata fitur per cluster untuk prioritas
+        $clusterMeans = [];
+        foreach ($clusterCounts as $cluster => $count) {
+            $means = ClusteringResult::where('cluster', $cluster)
+                ->join('beneficiaries', 'clustering_results.beneficiary_id', '=', 'beneficiaries.id')
+                ->select(
+                    DB::raw('AVG(usia) as usia'),
+                    DB::raw('AVG(jumlah_anak) as jumlah_anak'),
+                    DB::raw('AVG(kelayakan_rumah) as kelayakan_rumah'),
+                    DB::raw('AVG(pendapatan_perbulan) as pendapatan')
+                )
+                ->first();
+            $clusterMeans[$cluster] = [
+                'usia' => (float) $means->usia,
+                'jumlah_anak' => (float) $means->jumlah_anak,
+                'kelayakan_rumah' => (float) $means->kelayakan_rumah,
+                'pendapatan' => (float) $means->pendapatan,
+            ];
+        }
+
+        // Hitung skor kebutuhan bantuan untuk setiap cluster
+        $pendapatanArr = array_column($clusterMeans, 'pendapatan');
+        $kelayakanArr = array_column($clusterMeans, 'kelayakan_rumah');
+        $jumlahAnakArr = array_column($clusterMeans, 'jumlah_anak');
+        $needScores = [];
+        foreach ($clusterMeans as $idx => $mean) {
+            $pendapatan = $mean['pendapatan'] ?? 0;
+            $kelayakan = $mean['kelayakan_rumah'] ?? 0;
+            $jumlah_anak = $mean['jumlah_anak'] ?? 0;
+            $score = (max($pendapatanArr) - $pendapatan)
+                + (max($kelayakanArr) - $kelayakan)
+                + ($jumlah_anak - min($jumlahAnakArr));
+            $needScores[$idx] = $score;
+        }
+        arsort($needScores);
+        $rankMap = [];
+        $rank = 1;
+        foreach(array_keys($needScores) as $idx) {
+            $rankMap[$idx] = $rank++;
+        }
+
         return view('decision.create', [
-            'clusterCounts' => $clusterCounts
+            'clusterCounts' => $clusterCounts,
+            'rankMap' => $rankMap
         ]);
     }
     
@@ -65,29 +107,98 @@ class DecisionController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'cluster' => 'required|integer|min:0|max:2',
+            'cluster' => 'required',
             'count' => 'required|integer|min:1',
             'notes' => 'nullable|string',
         ]);
 
-        // Cek apakah count tidak melebihi jumlah anggota cluster
-        $clusterCount = ClusteringResult::where('cluster', $validated['cluster'])->count();
-        if ($validated['count'] > $clusterCount) {
-            return back()->withErrors(['count' => "Jumlah yang dipilih melebihi jumlah anggota dalam cluster ({$clusterCount})"])->withInput();
+        $cluster = $validated['cluster'];
+        $totalNeeded = $validated['count'];
+        $beneficiaryIds = [];
+
+        if ($cluster === 'all') {
+            // Hitung prioritas (rankMap) seperti di create()
+            $clusterCounts = ClusteringResult::select('cluster', DB::raw('count(*) as count'))
+                ->groupBy('cluster')
+                ->pluck('count', 'cluster')
+                ->toArray();
+            $clusterMeans = [];
+            foreach ($clusterCounts as $cl => $count) {
+                $means = ClusteringResult::where('cluster', $cl)
+                    ->join('beneficiaries', 'clustering_results.beneficiary_id', '=', 'beneficiaries.id')
+                    ->select(
+                        DB::raw('AVG(usia) as usia'),
+                        DB::raw('AVG(jumlah_anak) as jumlah_anak'),
+                        DB::raw('AVG(kelayakan_rumah) as kelayakan_rumah'),
+                        DB::raw('AVG(pendapatan_perbulan) as pendapatan')
+                    )
+                    ->first();
+                $clusterMeans[$cl] = [
+                    'usia' => (float) $means->usia,
+                    'jumlah_anak' => (float) $means->jumlah_anak,
+                    'kelayakan_rumah' => (float) $means->kelayakan_rumah,
+                    'pendapatan' => (float) $means->pendapatan,
+                ];
+            }
+            $pendapatanArr = array_column($clusterMeans, 'pendapatan');
+            $kelayakanArr = array_column($clusterMeans, 'kelayakan_rumah');
+            $jumlahAnakArr = array_column($clusterMeans, 'jumlah_anak');
+            $needScores = [];
+            foreach ($clusterMeans as $idx => $mean) {
+                $pendapatan = $mean['pendapatan'] ?? 0;
+                $kelayakan = $mean['kelayakan_rumah'] ?? 0;
+                $jumlah_anak = $mean['jumlah_anak'] ?? 0;
+                $score = (max($pendapatanArr) - $pendapatan)
+                    + (max($kelayakanArr) - $kelayakan)
+                    + ($jumlah_anak - min($jumlahAnakArr));
+                $needScores[$idx] = $score;
+            }
+            arsort($needScores);
+            $prioritasClusters = array_keys($needScores);
+
+            // Ambil penerima dari prioritas 1, 2, dst
+            $remaining = $totalNeeded;
+            foreach ($prioritasClusters as $cl) {
+                if ($remaining <= 0) break;
+                $ids = ClusteringResult::where('cluster', $cl)
+                    ->whereNotIn('beneficiary_id', $beneficiaryIds)
+                    ->inRandomOrder()
+                    ->limit($remaining)
+                    ->pluck('beneficiary_id')
+                    ->toArray();
+                $beneficiaryIds = array_merge($beneficiaryIds, $ids);
+                $remaining = $totalNeeded - count($beneficiaryIds);
+            }
+            if (count($beneficiaryIds) < $totalNeeded) {
+                return back()->withErrors(['count' => "Jumlah yang dipilih melebihi total seluruh cluster (" . count($beneficiaryIds) . ")"])->withInput();
+            }
+        } else {
+            // Validasi cluster harus integer dan ada di data
+            if (!is_numeric($cluster) || !ClusteringResult::where('cluster', $cluster)->exists()) {
+                return back()->withErrors(['cluster' => 'Cluster tidak valid'])->withInput();
+            }
+            $clusterCount = ClusteringResult::where('cluster', $cluster)->count();
+            if ($totalNeeded > $clusterCount) {
+                return back()->withErrors(['count' => "Jumlah yang dipilih melebihi jumlah anggota dalam cluster ({$clusterCount})"])->withInput();
+            }
+            $beneficiaryIds = ClusteringResult::where('cluster', $cluster)
+                ->inRandomOrder()
+                ->limit($totalNeeded)
+                ->pluck('beneficiary_id')
+                ->toArray();
         }
-        
+
         DB::beginTransaction();
         try {
             // Simpan decision result
-            $decisionResult = DecisionResult::create($validated);
-            
-            // Ambil ID penerima dalam cluster yang dipilih
-            $beneficiaryIds = ClusteringResult::where('cluster', $validated['cluster'])
-                ->inRandomOrder()
-                ->limit($validated['count'])
-                ->pluck('beneficiary_id')
-                ->toArray();
-            
+            $decisionResult = DecisionResult::create([
+                'title' => $validated['title'],
+                'description' => $validated['description'] ?? null,
+                'cluster' => $cluster === 'all' ? -1 : $cluster,
+                'count' => $totalNeeded,
+                'notes' => $validated['notes'] ?? null,
+            ]);
+
             // Buat item untuk setiap penerima yang dipilih
             foreach ($beneficiaryIds as $beneficiaryId) {
                 DecisionResultItem::create([
@@ -95,7 +206,7 @@ class DecisionController extends Controller
                     'beneficiary_id' => $beneficiaryId
                 ]);
             }
-            
+
             DB::commit();
             return redirect()->route('decision.show', $decisionResult->id)->with('success', 'Keputusan berhasil dibuat!');
         } catch (\Exception $e) {
