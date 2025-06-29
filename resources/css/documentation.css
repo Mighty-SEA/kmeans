@@ -1,0 +1,76 @@
+/* Custom style untuk halaman dokumentasi */
+.documentation-sidebar {
+    width: 220px;
+    background: #2563eb; /* biru-600 Tailwind */
+    color: #fff;
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    z-index: 20;
+}
+.documentation-sidebar::before {
+    display: none;
+}
+.documentation-sidebar > * {
+    position: static;
+    z-index: auto;
+}
+.documentation-sidebar a {
+    color: #fff;
+    font-weight: bold;
+    text-shadow: none;
+    filter: none;
+}
+.documentation-sidebar a:hover, .documentation-menu-active {
+    background: #1d4ed8; /* biru-700 Tailwind */
+    color: #fff;
+    filter: none;
+}
+.documentation-main {
+    margin-left: 220px;
+}
+
+/* Background gradasi biru ala Monet Android */
+.documentation-bg {
+    background: linear-gradient(135deg, #e3f0ff 0%, #c7e0ff 40%, #a3c8f5 100%);
+    min-height: 100vh;
+}
+
+/* Konten utama putih, rounded, dan shadow */
+.documentation-content {
+    background: #fff;
+    border-radius: 1.25rem;
+    box-shadow: 0 6px 32px 0 rgba(80, 120, 200, 0.10), 0 1.5px 6px 0 rgba(80, 120, 200, 0.08);
+    padding: 2.5rem;
+    margin-top: 2.5rem;
+    margin-bottom: 2.5rem;
+}
+
+/* Highlight menu aktif */
+.documentation-menu-active {
+    background: linear-gradient(90deg, #6366f1 0%, #3b82f6 100%);
+    color: #fff !important;
+    box-shadow: 0 2px 8px 0 rgba(99,102,241,0.10);
+}
+
+/* Animasi fade-in konten utama */
+@keyframes fadeInDoc {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: none; }
+}
+.documentation-fadein {
+    animation: fadeInDoc 0.7s cubic-bezier(.4,0,.2,1);
+}
+
+/* Ornamen SVG background pojok kanan bawah */
+.documentation-bg-ornament {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0.18;
+} 

@@ -6,6 +6,7 @@ use App\Http\Controllers\Statistic\StatisticController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Profile\ProfileController;
 use App\Http\Controllers\Decision\DecisionController;
+use App\Http\Controllers\Documentation\DocumentationController;
 
 // Authentication Routes
 Route::middleware(['guest'])->group(function () {
@@ -42,3 +43,12 @@ Route::middleware(['auth'])->group(function () {
     Route::put('/profile/password', [ProfileController::class, 'updatePassword'])->name('profile.password.update');
     Route::post('/profile/avatar', [ProfileController::class, 'updateAvatar'])->name('profile.avatar.update');
 });
+
+// Route untuk halaman dokumentasi (terisolasi)
+Route::get('/documentation', [DocumentationController::class, 'index'])->name('documentation.index');
+Route::get('/documentation/model', [DocumentationController::class, 'model'])->name('documentation.model');
+Route::get('/documentation/view', [DocumentationController::class, 'view'])->name('documentation.view');
+Route::get('/documentation/controller', [DocumentationController::class, 'controller'])->name('documentation.controller');
+Route::get('/documentation/route', [DocumentationController::class, 'route'])->name('documentation.route');
+Route::get('/documentation/middleware', [DocumentationController::class, 'middleware'])->name('documentation.middleware');
+Route::get('/documentation/migration', [DocumentationController::class, 'migration'])->name('documentation.migration');
