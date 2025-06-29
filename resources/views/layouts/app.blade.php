@@ -152,18 +152,7 @@
         <div class="container mx-auto">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="text-sm text-gray-600 mb-4 md:mb-0">
-                    &copy; {{ date('Y') }} Aplikasi Penerima Bantuan. Dibuat dengan <span class="text-red-500">&#10084;</span>
-                </div>
-                <div class="flex space-x-4">
-                    <a href="#" class="text-gray-500 hover:text-indigo-600 transition-colors duration-200">
-                        <i class="fab fa-github"></i>
-                    </a>
-                    <a href="#" class="text-gray-500 hover:text-indigo-600 transition-colors duration-200">
-                        <i class="fab fa-linkedin"></i>
-                    </a>
-                    <a href="#" class="text-gray-500 hover:text-indigo-600 transition-colors duration-200">
-                        <i class="fab fa-twitter"></i>
-                    </a>
+                &copy; {{ date('Y') }}  APRILA RIZKIANTI - Aplikasi ini dibuat untuk keperluan Skripsi di STT PRATAMA ADI
                 </div>
             </div>
         </div>
