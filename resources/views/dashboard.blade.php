@@ -1,8 +1,6 @@
 @extends('layouts.app')
 
 @section('title', 'Dashboard - Admin Panel')
-@section('header', 'Dashboard Analitik')
-@section('subheader', 'Visualisasi dan analisis data cluster dengan metode K-Means')
 
 @section('content')
 <div class="space-y-8">

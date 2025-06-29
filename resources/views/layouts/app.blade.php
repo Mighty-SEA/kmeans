@@ -21,7 +21,7 @@
 </head>
 <body class="bg-gray-50 min-h-screen flex flex-col font-sans">
     <!-- Topbar -->
-    <header class="bg-gradient-to-r from-indigo-800 to-indigo-700 text-white shadow-lg">
+    <header class="bg-gradient-to-r from-indigo-800 to-indigo-700 text-white shadow-lg sticky top-0 z-50">
         <div class="container mx-auto">
             <div class="flex justify-between items-center py-4 px-6">
                 <div class="flex items-center">
@@ -129,7 +129,7 @@
     </header>
 
     <!-- Page Header -->
-    <div class="bg-white shadow-sm border-b border-gray-200">
+    <!-- <div class="bg-white shadow-sm border-b border-gray-200">
         <div class="container mx-auto py-5 px-6">
             <div class="flex items-center justify-between">
                 <div>
@@ -141,14 +141,14 @@
                 </div>
             </div>
         </div>
-    </div>
+    </div> -->
 
     <!-- Main Content -->
     <main class="flex-1 container mx-auto py-8 px-6">
         @yield('content')
     </main>
 
-    <footer class="bg-white py-6 px-6 border-t">
+    <footer class="bg-white py-6 px-6 border-t sticky bottom-0 z-40">
         <div class="container mx-auto">
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="text-sm text-gray-600 mb-4 md:mb-0">
