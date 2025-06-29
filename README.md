@@ -15,6 +15,12 @@ Aplikasi untuk melakukan clustering data penerima bantuan menggunakan algoritma 
 
 Proyek ini menggunakan Pest PHP untuk testing. Pest adalah framework testing yang elegan dan fokus pada developer experience.
 
+### Status Testing
+
+Semua test telah berhasil dijalankan! Proyek ini memiliki total 25 test yang mencakup:
+- 2 Unit Tests
+- 23 Feature Tests
+
 ### Menjalankan Test
 
 Untuk menjalankan semua test:
