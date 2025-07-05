@@ -249,7 +249,7 @@
         <div class="mb-10">
             <h3 class="text-2xl font-bold mb-2">3. StatisticController</h3>
             <p class="mb-4">
-                Controller StatisticController merupakan inti dari aplikasi K-Means Clustering ini, menangani seluruh proses terkait analisis statistik dan algoritma clustering.
+                <b>StatisticController</b> merupakan inti dari aplikasi K-Means Clustering yang bertanggung jawab atas seluruh proses analisis statistik dan implementasi algoritma clustering. Controller ini menjadi pusat logika bisnis yang menghubungkan data penerima bantuan dengan proses analisis berbasis machine learning, mulai dari visualisasi data, perhitungan cluster, hingga evaluasi kualitas hasil clustering. Dengan adanya StatisticController, aplikasi mampu memberikan insight yang mendalam dan berbasis data kepada pengguna, sehingga mendukung pengambilan keputusan yang lebih objektif dan terukur. Berikut penjelasan detail setiap fungsi utama dalam StatisticController:
             </p>
             
             <div class="mb-6">
@@ -293,8 +293,8 @@
     ]);
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan halaman statistik utama dengan visualisasi hasil clustering jika data sudah diproses, atau formulir untuk memulai clustering jika belum. Pertama, fungsi memeriksa apakah jumlah data memadai untuk clustering (minimal 3). Kemudian, fungsi memeriksa apakah sudah ada hasil clustering sebelumnya dengan membandingkan jumlah hasil clustering dengan jumlah data. Jika sudah ada, fungsi akan memuat data tersebut dan menyiapkan visualisasi seperti scatter plot, pie chart untuk distribusi anggota per cluster, dan statistik deskriptif untuk setiap cluster. Fungsi juga memuat pengaturan clustering terakhir dari session untuk digunakan sebagai nilai default pada form.
+                <p class="mb-4">
+                    <b>index()</b> adalah fungsi yang bertugas untuk menampilkan halaman utama statistik, yang berisi visualisasi hasil clustering dan form untuk memulai proses clustering. Fungsi ini memeriksa kelengkapan data, memuat hasil clustering jika sudah ada, dan menyiapkan berbagai data statistik seperti distribusi cluster, scatter plot, serta statistik deskriptif untuk setiap cluster. Dengan demikian, fungsi ini menjadi pintu masuk utama bagi pengguna untuk memahami pola dan distribusi data penerima bantuan secara visual dan analitis.
                 </p>
             </div>
             
@@ -338,8 +338,8 @@
     return $this->doClustering($request, "Clustering berhasil dihitung ulang dengan $numClusters cluster dan normalisasi $normalizationName.");
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini memungkinkan pengguna untuk menjalankan ulang proses clustering dengan parameter berbeda. Fungsi ini memvalidasi input yang dikirim, memastikan jumlah cluster valid (antara 2-10) dan metode normalisasi sesuai dengan pilihan yang tersedia. Kemudian, fungsi menyimpan pengaturan terakhir ke session, menghapus semua hasil clustering dan normalisasi sebelumnya, dan memanggil fungsi doClustering() untuk melakukan proses clustering dengan parameter yang baru. Fungsi juga menyiapkan pesan sukses yang informatif tentang parameter yang digunakan.
+                <p class="mb-4">
+                    <b>recalculate(Request $request)</b> adalah fungsi yang memungkinkan pengguna untuk menjalankan ulang proses clustering dengan parameter yang berbeda, seperti jumlah cluster dan metode normalisasi. Fungsi ini sangat penting untuk eksperimen dan analisis sensitivitas, di mana pengguna dapat membandingkan hasil clustering dengan berbagai konfigurasi. Dengan validasi input yang ketat dan penghapusan hasil clustering lama sebelum perhitungan ulang, fungsi ini memastikan bahwa hasil analisis selalu akurat dan relevan dengan parameter yang dipilih.
                 </p>
             </div>
             
@@ -390,8 +390,8 @@
     ]);
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan detail lengkap untuk cluster tertentu, termasuk anggota cluster dan statistik deskriptif. Fungsi pertama memeriksa apakah cluster yang diminta valid, lalu mengambil data penerima bantuan yang termasuk dalam cluster tersebut dengan fitur pencarian dan pagination. Fungsi juga menghitung statistik deskriptif untuk cluster seperti nilai minimum, maksimum, rata-rata, median, dan standar deviasi untuk setiap fitur. Jika ada, fungsi juga menampilkan statistik skor silhouette untuk mengevaluasi kualitas clustering. Informasi ini ditampilkan dalam view 'statistics.cluster_detail'.
+                <p class="mb-4">
+                    <b>showCluster($cluster, Request $request)</b> adalah fungsi yang menampilkan detail lengkap untuk cluster tertentu, termasuk daftar anggota cluster dan statistik deskriptifnya. Fungsi ini sangat berguna untuk analisis mendalam terhadap karakteristik masing-masing cluster, seperti nilai minimum, maksimum, rata-rata, median, dan standar deviasi setiap fitur. Dengan fitur pencarian dan paginasi, pengguna dapat dengan mudah menelusuri data dalam cluster yang besar. Fungsi ini juga menampilkan skor silhouette untuk mengevaluasi kualitas clustering pada cluster tersebut.
                 </p>
             </div>
             
@@ -455,8 +455,8 @@
     return redirect()->route('statistic.index')->with('success', $successMessage ?? "Clustering berhasil dilakukan dengan $numClusters cluster.");
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini adalah fungsi utama yang mengimplementasikan algoritma K-Means. Pertama, fungsi memvalidasi input user, memastikan jumlah cluster dan metode normalisasi valid. Kemudian, fungsi mengekstrak data dari penerima bantuan, mempersiapkan data untuk normalisasi, dan menerapkan normalisasi sesuai metode yang dipilih (tanpa normalisasi, Min-Max, Z-Score, atau Robust). Setelah data dinormalisasi, fungsi menggunakan library Rubix ML untuk melakukan K-Means Clustering dan mendapatkan label cluster untuk setiap penerima bantuan. Fungsi juga menghitung skor silhouette untuk evaluasi kualitas clustering. Terakhir, hasil clustering dan normalisasi disimpan ke database dan pengguna diarahkan kembali ke halaman statistik dengan pesan sukses.
+                <p class="mb-4">
+                    <b>doClustering(Request $request, $successMessage = null)</b> adalah fungsi utama yang mengimplementasikan algoritma K-Means pada data penerima bantuan. Fungsi ini melakukan validasi input, menyiapkan dan menormalisasi data, menjalankan proses clustering menggunakan library machine learning, serta menyimpan hasil cluster dan skor silhouette ke database. Proses ini sangat penting untuk menghasilkan segmentasi data yang objektif dan dapat dipertanggungjawabkan secara ilmiah. Dengan adanya fungsi ini, aplikasi mampu memberikan hasil clustering yang siap digunakan untuk analisis lanjutan dan pengambilan keputusan.
                 </p>
             </div>
             
@@ -498,8 +498,8 @@
     return $silhouettes;
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi privat ini menghitung skor silhouette untuk setiap data point dalam clustering. Skor silhouette adalah ukuran seberapa baik suatu objek cocok dengan klusternya dibandingkan dengan kluster lainnya, dengan nilai -1 hingga 1. Nilai mendekati 1 menunjukkan objek sangat cocok dengan klusternya. Fungsi ini mengelompokkan data berdasarkan kluster, kemudian untuk setiap data, menghitung jarak rata-rata ke semua data lain dalam kluster yang sama (a) dan jarak rata-rata ke data dalam kluster terdekat lainnya (b). Skor silhouette kemudian dihitung dengan rumus (b-a)/max(a,b). Fungsi ini sangat penting untuk evaluasi kualitas hasil clustering.
+                <p class="mb-4">
+                    <b>calculateSilhouetteScores(array $samples, array $labels)</b> adalah fungsi privat yang menghitung skor silhouette untuk setiap data point dalam hasil clustering. Skor silhouette merupakan indikator seberapa baik suatu data cocok dengan cluster-nya dibandingkan dengan cluster lain. Nilai ini sangat penting dalam evaluasi kualitas clustering, karena dapat digunakan untuk mengidentifikasi cluster yang terlalu tumpang tindih atau data yang salah klasifikasi. Dengan perhitungan yang sistematis, fungsi ini membantu memastikan bahwa hasil clustering yang dihasilkan benar-benar optimal dan dapat diandalkan.
                 </p>
             </div>
             
@@ -528,8 +528,8 @@
     return $count > 0 ? $sum / $count : 0;
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi pembantu ini menghitung jarak rata-rata antara satu titik data dengan kumpulan titik data lainnya. Fungsi ini digunakan dalam perhitungan skor silhouette. Fungsi mengiterasi melalui semua titik data dalam kumpulan, menghitung jarak Euclidean antara titik yang diberikan dengan setiap titik lainnya (kecuali titik yang sama), dan mengembalikan rata-rata dari jarak tersebut. Jika hanya ada satu titik atau kurang dalam kumpulan, fungsi mengembalikan 0.
+                <p class="mb-4">
+                    <b>calculateAverageDistance(array $point, array $points)</b> adalah fungsi pembantu yang digunakan untuk menghitung jarak rata-rata antara satu titik data dengan kumpulan titik data lainnya. Fungsi ini sangat penting dalam perhitungan skor silhouette, karena menentukan seberapa dekat suatu data dengan cluster-nya sendiri maupun dengan cluster lain. Dengan perhitungan jarak yang akurat, evaluasi kualitas clustering menjadi lebih objektif dan terukur.
                 </p>
             </div>
             
@@ -547,8 +547,8 @@
     return sqrt($sum);
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menghitung jarak Euclidean antara dua titik data dalam ruang n-dimensi. Jarak Euclidean adalah ukuran perbedaan antara dua titik data yang menjadi dasar dalam banyak algoritma clustering, termasuk K-Means. Fungsi ini mengkuadratkan selisih antara setiap dimensi dari kedua titik, menjumlahkannya, lalu mengambil akar kuadrat dari jumlah tersebut. Rumus ini adalah implementasi langsung dari teorema Pythagoras yang diperluas ke dimensi yang lebih tinggi.
+                <p class="mb-4">
+                    <b>euclideanDistance(array $point1, array $point2)</b> adalah fungsi yang menghitung jarak Euclidean antara dua titik data dalam ruang multi-dimensi. Jarak Euclidean merupakan metrik yang paling umum digunakan dalam algoritma clustering, termasuk K-Means, karena memberikan gambaran seberapa mirip atau berbeda dua data. Dengan perhitungan jarak yang tepat, proses clustering dapat menghasilkan pembagian cluster yang lebih akurat dan bermakna.
                 </p>
             </div>
             
@@ -589,8 +589,8 @@
     return $normalizedData;
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menormalisasi data sebelum clustering menggunakan metode Robust Standardization. Normalisasi adalah proses penskalaan data untuk menghilangkan bias yang mungkin terjadi karena perbedaan skala antar fitur. Fungsi ini menggunakan RobustStandardizer dari library Rubix ML yang lebih tahan terhadap outlier dibandingkan standardisasi biasa. Fungsi menyiapkan dataset dari fitur-fitur yang diberikan, melakukan fitting dan transformasi, kemudian menyimpan hasil normalisasi ke array asosiatif yang menghubungkan ID penerima bantuan dengan nilai-nilai fitur yang sudah dinormalisasi. Normalisasi ini sangat penting untuk memastikan semua fitur diperlakukan sama dalam proses clustering.
+                <p class="mb-4">
+                    <b>normalizeData($data, array $usiaValues, array $anakValues, array $rumahValues, array $pendapatanValues)</b> adalah fungsi yang menormalisasi data sebelum dilakukan proses clustering. Normalisasi sangat penting untuk memastikan bahwa setiap fitur memiliki skala yang sebanding, sehingga tidak ada fitur yang mendominasi proses clustering hanya karena perbedaan skala. Dengan menggunakan metode normalisasi yang tepat, hasil clustering menjadi lebih adil, akurat, dan representatif terhadap karakteristik data sebenarnya.
                 </p>
             </div>
         </div>
@@ -598,301 +598,66 @@
         <div class="mb-10">
             <h3 class="text-2xl font-bold mb-2">4. DecisionController</h3>
             <p class="mb-4">
-                Controller DecisionController bertanggung jawab untuk mengelola proses pengambilan keputusan berdasarkan hasil clustering untuk distribusi bantuan.
+                <b>DecisionController</b> adalah controller yang bertanggung jawab untuk mengelola proses pengambilan keputusan berbasis hasil clustering dalam distribusi bantuan. Controller ini menjadi penghubung antara hasil analisis data (clustering) dengan aksi nyata berupa penentuan penerima bantuan yang diprioritaskan. Dengan adanya DecisionController, aplikasi mampu menerjemahkan hasil analisis data menjadi kebijakan distribusi yang lebih adil, objektif, dan transparan. Berikut penjelasan detail setiap fungsi utama dalam DecisionController:
             </p>
-            
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">index()</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function index()
 {
-    // Hitung jumlah anggota per cluster
-    $clusterCounts = ClusteringResult::select('cluster', DB::raw('count(*) as count'))
-        ->groupBy('cluster')
-        ->pluck('count', 'cluster')
-        ->toArray();
-    
-    if (empty($clusterCounts)) {
-        $clusterCounts = [0 => 0, 1 => 0, 2 => 0];
-    }
-
-    // Ambil statistik cluster (mean, silhouette, prioritas)
-    $clusterMeans = [];
-    $avgSilhouettes = [];
-    foreach ($clusterCounts as $cluster => $count) {
-        $means = ClusteringResult::where('cluster', $cluster)
-            ->join('beneficiaries', 'clustering_results.beneficiary_id', '=', 'beneficiaries.id')
-            ->select(
-                DB::raw('AVG(usia) as usia'),
-                DB::raw('AVG(jumlah_anak) as jumlah_anak'),
-                DB::raw('AVG(kelayakan_rumah) as kelayakan_rumah'),
-                DB::raw('AVG(pendapatan_perbulan) as pendapatan'),
-                DB::raw('AVG(silhouette) as silhouette')
-            )
-            ->first();
-        $clusterMeans[$cluster] = [
-            'usia' => (float) $means->usia,
-            'jumlah_anak' => (float) $means->jumlah_anak,
-            'kelayakan_rumah' => (float) $means->kelayakan_rumah,
-            'pendapatan' => (float) $means->pendapatan,
-        ];
-        $avgSilhouettes[$cluster] = (float) $means->silhouette;
-    }
-    // Hitung prioritas
-    $pendapatanArr = array_column($clusterMeans, 'pendapatan');
-    $kelayakanArr = array_column($clusterMeans, 'kelayakan_rumah');
-    $jumlahAnakArr = array_column($clusterMeans, 'jumlah_anak');
-    $needScores = [];
-    foreach ($clusterMeans as $idx => $mean) {
-        $pendapatan = $mean['pendapatan'] ?? 0;
-        $kelayakan = $mean['kelayakan_rumah'] ?? 0;
-        $jumlah_anak = $mean['jumlah_anak'] ?? 0;
-        $score = (max($pendapatanArr) - $pendapatan)
-            + (max($kelayakanArr) - $kelayakan)
-            + ($jumlah_anak - min($jumlahAnakArr));
-        $needScores[$idx] = $score;
-    }
-    arsort($needScores);
-    $rankMap = [];
-    $rank = 1;
-    foreach(array_keys($needScores) as $idx) {
-        $rankMap[$idx] = $rank++;
-    }
-    // Ambil semua decision results untuk ditampilkan
-    $decisionResults = DecisionResult::orderBy('created_at', 'desc')->get();
-    
-    return view('decision.index', [
-        'clusterCounts' => $clusterCounts,
-        'decisionResults' => $decisionResults,
-        'clusterMeans' => $clusterMeans,
-        'avgSilhouettes' => $avgSilhouettes,
-        'rankMap' => $rankMap
-    ]);
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan halaman utama panel keputusan dengan informasi tentang distribusi cluster dan daftar keputusan yang telah dibuat sebelumnya. Pertama, fungsi menghitung jumlah anggota per cluster, lalu mengambil statistik untuk setiap cluster seperti rata-rata usia, jumlah anak, kelayakan rumah, dan pendapatan. Fungsi juga menghitung prioritas cluster berdasarkan kebutuhan bantuan dengan formula yang mempertimbangkan pendapatan (lebih rendah lebih prioritas), kelayakan rumah (lebih rendah lebih prioritas), dan jumlah anak (lebih tinggi lebih prioritas). Terakhir, fungsi mengambil semua keputusan yang telah dibuat dan merender view 'decision.index' dengan semua data ini.
+                <p class="mb-4">
+                    <b>index()</b> adalah fungsi yang menampilkan halaman utama panel keputusan, berisi informasi distribusi cluster, statistik cluster, dan daftar keputusan yang telah dibuat sebelumnya. Fungsi ini sangat penting untuk memberikan gambaran menyeluruh kepada pengguna mengenai hasil clustering dan prioritas distribusi bantuan. Dengan menampilkan data statistik dan peringkat kebutuhan setiap cluster, pengguna dapat mengambil keputusan distribusi bantuan secara lebih terukur dan berbasis data.
                 </p>
             </div>
-            
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">create()</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function create()
 {
-    // Hitung jumlah anggota per cluster
-    $clusterCounts = ClusteringResult::select('cluster', DB::raw('count(*) as count'))
-        ->groupBy('cluster')
-        ->pluck('count', 'cluster')
-        ->toArray();
-        
-    if (empty($clusterCounts)) {
-        return redirect()->route('decision.index')->with('error', 'Belum ada data clustering. Silakan lakukan clustering terlebih dahulu.');
-    }
-
-    // Ambil rata-rata fitur per cluster untuk prioritas
-    $clusterMeans = [];
-    foreach ($clusterCounts as $cluster => $count) {
-        $means = ClusteringResult::where('cluster', $cluster)
-            ->join('beneficiaries', 'clustering_results.beneficiary_id', '=', 'beneficiaries.id')
-            ->select(
-                DB::raw('AVG(usia) as usia'),
-                DB::raw('AVG(jumlah_anak) as jumlah_anak'),
-                DB::raw('AVG(kelayakan_rumah) as kelayakan_rumah'),
-                DB::raw('AVG(pendapatan_perbulan) as pendapatan')
-            )
-            ->first();
-        $clusterMeans[$cluster] = [
-            'usia' => (float) $means->usia,
-            'jumlah_anak' => (float) $means->jumlah_anak,
-            'kelayakan_rumah' => (float) $means->kelayakan_rumah,
-            'pendapatan' => (float) $means->pendapatan,
-        ];
-    }
-
-    // Hitung skor kebutuhan bantuan untuk setiap cluster
-    $pendapatanArr = array_column($clusterMeans, 'pendapatan');
-    $kelayakanArr = array_column($clusterMeans, 'kelayakan_rumah');
-    $jumlahAnakArr = array_column($clusterMeans, 'jumlah_anak');
-    $needScores = [];
-    foreach ($clusterMeans as $idx => $mean) {
-        $pendapatan = $mean['pendapatan'] ?? 0;
-        $kelayakan = $mean['kelayakan_rumah'] ?? 0;
-        $jumlah_anak = $mean['jumlah_anak'] ?? 0;
-        $score = (max($pendapatanArr) - $pendapatan)
-            + (max($kelayakanArr) - $kelayakan)
-            + ($jumlah_anak - min($jumlahAnakArr));
-        $needScores[$idx] = $score;
-    }
-    arsort($needScores);
-    $rankMap = [];
-    $rank = 1;
-    foreach(array_keys($needScores) as $idx) {
-        $rankMap[$idx] = $rank++;
-    }
-
-    return view('decision.create', [
-        'clusterCounts' => $clusterCounts,
-        'rankMap' => $rankMap
-    ]);
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan formulir untuk membuat keputusan baru. Pertama, fungsi memeriksa apakah sudah ada data hasil clustering. Jika belum, pengguna akan diarahkan kembali ke halaman index dengan pesan error. Jika sudah, fungsi menghitung jumlah anggota per cluster dan rata-rata fitur per cluster untuk menentukan prioritas. Sama seperti pada fungsi index(), fungsi ini menghitung skor kebutuhan bantuan untuk setiap cluster dan membuat peringkat cluster berdasarkan skor tersebut. Data ini kemudian dikirim ke view 'decision.create' untuk membantu pengguna dalam memilih cluster yang tepat untuk distribusi bantuan.
+                <p class="mb-4">
+                    <b>create()</b> adalah fungsi yang menampilkan formulir pembuatan keputusan distribusi bantuan baru. Fungsi ini memeriksa ketersediaan data hasil clustering, menghitung prioritas cluster, dan menyiapkan data yang dibutuhkan untuk membantu pengguna dalam memilih cluster yang tepat. Dengan adanya fitur ini, proses pengambilan keputusan menjadi lebih sistematis, transparan, dan dapat dipertanggungjawabkan secara ilmiah.
                 </p>
             </div>
-            
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">store(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function store(Request $request)
 {
-    $validated = $request->validate([
-        'title' => 'required|string|max:255',
-        'description' => 'nullable|string',
-        'cluster' => 'required',
-        'count' => 'required|integer|min:1',
-        'notes' => 'nullable|string',
-    ]);
-
-    $cluster = $validated['cluster'];
-    $totalNeeded = $validated['count'];
-    $beneficiaryIds = [];
-
-    if ($cluster === 'all') {
-        // Hitung prioritas (rankMap) seperti di create()
-        $clusterCounts = ClusteringResult::select('cluster', DB::raw('count(*) as count'))
-            ->groupBy('cluster')
-            ->pluck('count', 'cluster')
-            ->toArray();
-        $clusterMeans = [];
-        foreach ($clusterCounts as $cl => $count) {
-            $means = ClusteringResult::where('cluster', $cl)
-                ->join('beneficiaries', 'clustering_results.beneficiary_id', '=', 'beneficiaries.id')
-                ->select(
-                    DB::raw('AVG(usia) as usia'),
-                    DB::raw('AVG(jumlah_anak) as jumlah_anak'),
-                    DB::raw('AVG(kelayakan_rumah) as kelayakan_rumah'),
-                    DB::raw('AVG(pendapatan_perbulan) as pendapatan')
-                )
-                ->first();
-            $clusterMeans[$cl] = [
-                'usia' => (float) $means->usia,
-                'jumlah_anak' => (float) $means->jumlah_anak,
-                'kelayakan_rumah' => (float) $means->kelayakan_rumah,
-                'pendapatan' => (float) $means->pendapatan,
-            ];
-        }
-        $pendapatanArr = array_column($clusterMeans, 'pendapatan');
-        $kelayakanArr = array_column($clusterMeans, 'kelayakan_rumah');
-        $jumlahAnakArr = array_column($clusterMeans, 'jumlah_anak');
-        $needScores = [];
-        foreach ($clusterMeans as $idx => $mean) {
-            $pendapatan = $mean['pendapatan'] ?? 0;
-            $kelayakan = $mean['kelayakan_rumah'] ?? 0;
-            $jumlah_anak = $mean['jumlah_anak'] ?? 0;
-            $score = (max($pendapatanArr) - $pendapatan)
-                + (max($kelayakanArr) - $kelayakan)
-                + ($jumlah_anak - min($jumlahAnakArr));
-            $needScores[$idx] = $score;
-        }
-        arsort($needScores);
-        $prioritasClusters = array_keys($needScores);
-
-        // Ambil penerima dari prioritas 1, 2, dst
-        $remaining = $totalNeeded;
-        foreach ($prioritasClusters as $cl) {
-            if ($remaining <= 0) break;
-            $ids = ClusteringResult::where('cluster', $cl)
-                ->whereNotIn('beneficiary_id', $beneficiaryIds)
-                ->inRandomOrder()
-                ->limit($remaining)
-                ->pluck('beneficiary_id')
-                ->toArray();
-            $beneficiaryIds = array_merge($beneficiaryIds, $ids);
-            $remaining = $totalNeeded - count($beneficiaryIds);
-        }
-        if (count($beneficiaryIds) < $totalNeeded) {
-            return back()->withErrors(['count' => "Jumlah yang dipilih melebihi total seluruh cluster (" . count($beneficiaryIds) . ")"])->withInput();
-        }
-    } else {
-        // Validasi cluster harus integer dan ada di data
-        if (!is_numeric($cluster) || !ClusteringResult::where('cluster', $cluster)->exists()) {
-            return back()->withErrors(['cluster' => 'Cluster tidak valid'])->withInput();
-        }
-        $clusterCount = ClusteringResult::where('cluster', $cluster)->count();
-        if ($totalNeeded > $clusterCount) {
-            return back()->withErrors(['count' => "Jumlah yang dipilih melebihi jumlah anggota dalam cluster ({$clusterCount})"])->withInput();
-        }
-        $beneficiaryIds = ClusteringResult::where('cluster', $cluster)
-            ->inRandomOrder()
-            ->limit($totalNeeded)
-            ->pluck('beneficiary_id')
-            ->toArray();
-    }
-
-    DB::beginTransaction();
-    try {
-        // Simpan decision result
-        $decisionResult = DecisionResult::create([
-            'title' => $validated['title'],
-            'description' => $validated['description'] ?? null,
-            'cluster' => $cluster === 'all' ? -1 : $cluster,
-            'count' => $totalNeeded,
-            'notes' => $validated['notes'] ?? null,
-        ]);
-
-        // Buat item untuk setiap penerima yang dipilih
-        foreach ($beneficiaryIds as $beneficiaryId) {
-            DecisionResultItem::create([
-                'decision_result_id' => $decisionResult->id,
-                'beneficiary_id' => $beneficiaryId
-            ]);
-        }
-
-        DB::commit();
-        return redirect()->route('decision.show', $decisionResult->id)->with('success', 'Keputusan berhasil dibuat!');
-    } catch (\Exception $e) {
-        DB::rollBack();
-        return back()->with('error', 'Terjadi kesalahan: ' . $e->getMessage())->withInput();
-    }
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini memproses pembuatan keputusan baru untuk distribusi bantuan. Pertama, fungsi memvalidasi input dari form, memastikan semua field yang diperlukan telah diisi dengan benar. Berdasarkan pilihan cluster (cluster tertentu atau 'all' untuk semua cluster), fungsi menentukan penerima bantuan yang akan dipilih. Jika 'all' dipilih, fungsi akan menghitung prioritas cluster seperti pada fungsi create() dan mengambil penerima bantuan mulai dari cluster dengan prioritas tertinggi. Jika cluster tertentu dipilih, fungsi akan mengambil penerima bantuan secara acak dari cluster tersebut. Fungsi juga melakukan validasi untuk memastikan jumlah yang diminta tidak melebihi jumlah penerima yang tersedia. Semua proses pembuatan keputusan dijalankan dalam transaksi database untuk memastikan integritas data.
+                <p class="mb-4">
+                    <b>store(Request $request)</b> adalah fungsi yang memproses pembuatan keputusan distribusi bantuan berdasarkan input pengguna. Fungsi ini melakukan validasi input, menentukan penerima bantuan berdasarkan prioritas cluster atau cluster tertentu, dan menyimpan hasil keputusan ke database. Proses ini dijalankan dalam transaksi database untuk menjaga integritas data. Dengan adanya fungsi ini, aplikasi memastikan bahwa setiap keputusan distribusi bantuan didasarkan pada data yang valid, logika prioritas yang jelas, dan dapat dilacak riwayatnya.
                 </p>
             </div>
-            
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">show($id)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function show($id)
 {
-    $decisionResult = DecisionResult::with('beneficiaries')->findOrFail($id);
-    
-    return view('decision.show', [
-        'decisionResult' => $decisionResult
-    ]);
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan detail lengkap dari keputusan distribusi bantuan yang telah dibuat. Fungsi mengambil data keputusan beserta daftar penerima bantuan yang terpilih menggunakan eager loading untuk optimasi performa. Data ini kemudian ditampilkan di view 'decision.show' untuk menampilkan informasi seperti judul keputusan, deskripsi, tanggal pembuatan, cluster yang dipilih, jumlah penerima bantuan, dan daftar lengkap penerima bantuan beserta detailnya.
+                <p class="mb-4">
+                    <b>show($id)</b> adalah fungsi yang menampilkan detail lengkap dari keputusan distribusi bantuan yang telah dibuat. Fungsi ini mengambil data keputusan beserta daftar penerima bantuan yang terpilih, dan menampilkannya secara informatif kepada pengguna. Dengan fitur ini, pengguna dapat menelusuri riwayat keputusan, memverifikasi penerima bantuan, dan memastikan transparansi dalam proses distribusi.
                 </p>
             </div>
-            
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">destroy($id)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function destroy($id)
 {
-    $decisionResult = DecisionResult::findOrFail($id);
-    $decisionResult->delete();
-    
-    return redirect()->route('decision.index')->with('success', 'Keputusan berhasil dihapus!');
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menghapus keputusan distribusi bantuan yang tidak diperlukan lagi. Fungsi mencari data keputusan berdasarkan ID yang diberikan, lalu menghapusnya dari database. Perlu dicatat bahwa Laravel akan secara otomatis menghapus semua item terkait dalam tabel decision_result_items melalui mekanisme cascade delete yang didefinisikan dalam model atau migrasi. Setelah berhasil dihapus, pengguna diarahkan kembali ke halaman index dengan pesan sukses.
+                <p class="mb-4">
+                    <b>destroy($id)</b> adalah fungsi yang bertanggung jawab untuk menghapus keputusan distribusi bantuan yang tidak diperlukan lagi. Fungsi ini memastikan bahwa data keputusan dan seluruh item terkait dihapus secara konsisten dari database. Dengan adanya fitur ini, aplikasi mendukung pengelolaan riwayat keputusan yang lebih rapi dan mencegah penumpukan data yang tidak relevan.
                 </p>
             </div>
         </div>
@@ -900,9 +665,8 @@
         <div class="mb-10">
             <h3 class="text-2xl font-bold mb-2">5. ProfileController</h3>
             <p class="mb-4">
-                Controller ProfileController mengelola semua fitur terkait dengan pengelolaan profil pengguna, termasuk menampilkan dan memperbarui data profil, mengubah password, serta mengunggah avatar pengguna.
+                <b>ProfileController</b> adalah controller yang mengelola seluruh fitur terkait pengelolaan profil pengguna dalam aplikasi. Controller ini memastikan bahwa setiap pengguna dapat memperbarui data pribadinya, mengganti password, serta mengunggah foto profil (avatar) dengan aman dan mudah. Dengan adanya ProfileController, aplikasi memberikan keleluasaan dan kontrol penuh kepada pengguna atas data pribadinya, sekaligus menjaga keamanan dan kenyamanan dalam penggunaan aplikasi. Berikut penjelasan detail setiap fungsi utama dalam ProfileController:
             </p>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">edit()</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
@@ -913,11 +677,10 @@
     ]);
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan halaman edit profil pengguna yang sedang login. Fungsi menggunakan Auth::user() untuk mendapatkan data pengguna saat ini dan mengirimkannya ke view 'profile.edit'. Halaman ini biasanya berisi formulir untuk mengubah data pribadi pengguna seperti nama dan email, serta opsi untuk mengubah password dan avatar.
+                <p class="mb-4">
+                    <b>edit()</b> adalah fungsi yang menampilkan halaman edit profil pengguna yang sedang login. Fungsi ini mengambil data pengguna saat ini dan menampilkannya dalam form yang dapat diedit. Dengan fitur ini, pengguna dapat dengan mudah memperbarui informasi pribadi seperti nama dan email, sehingga data yang tersimpan di aplikasi selalu akurat dan up-to-date.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">update(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
@@ -940,13 +703,10 @@
     return redirect()->route('profile.edit')->with('status', 'Profil berhasil diperbarui.');
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini memproses permintaan pembaruan data profil pengguna. Pertama, fungsi mengambil objek pengguna yang sedang login. Kemudian, fungsi memvalidasi input dari formulir, memastikan nama diisi dan tidak melebihi 255 karakter, serta email valid dan unik di database (kecuali untuk pengguna saat ini menggunakan Rule::unique('users')->ignore($user->id)). 
-                    
-                    Setelah validasi berhasil, fungsi menggunakan query builder (DB::table) untuk memperbarui data pengguna di database. Setelah pembaruan berhasil, pengguna diarahkan kembali ke halaman edit profil dengan pesan status sukses. Penggunaan query builder langsung alih-alih model Eloquent adalah pendekatan alternatif yang bisa digunakan untuk operasi database sederhana.
+                <p class="mb-4">
+                    <b>update(Request $request)</b> adalah fungsi yang memproses permintaan pembaruan data profil pengguna. Fungsi ini melakukan validasi data yang diinputkan, memastikan nama dan email yang baru sudah sesuai standar dan tidak duplikat. Setelah validasi berhasil, data pengguna akan diperbarui di database. Fitur ini sangat penting untuk menjaga integritas data pengguna dan memberikan pengalaman personalisasi yang lebih baik dalam aplikasi.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">updatePassword(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
@@ -968,17 +728,10 @@
     return redirect()->route('profile.edit')->with('status', 'Password berhasil diperbarui.');
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menangani pembaruan password pengguna dengan langkah-langkah keamanan yang tepat. Pertama, fungsi memvalidasi input dari formulir menggunakan aturan validasi:
-                    <ul class="list-disc ml-6 mt-2">
-                        <li>'current_password' - memastikan password saat ini yang dimasukkan sesuai dengan yang tersimpan di database menggunakan validator bawaan Laravel 'current_password'</li>
-                        <li>'password' - memastikan password baru diisi, dikonfirmasi (dengan field password_confirmation), dan minimal 8 karakter</li>
-                    </ul>
-                    
-                    Setelah validasi berhasil, fungsi mengambil pengguna saat ini dan menggunakan DB query builder untuk memperbarui password dengan versi yang sudah di-hash menggunakan Hash::make(). Akhirnya, pengguna diarahkan kembali ke halaman edit profil dengan pesan sukses. Pendekatan ini memastikan password disimpan dengan aman dan pengguna memverifikasi password lama sebelum mengubahnya.
+                <p class="mb-4">
+                    <b>updatePassword(Request $request)</b> adalah fungsi yang menangani proses penggantian password pengguna. Fungsi ini memvalidasi password lama dan password baru, memastikan keamanan dan kerahasiaan akun pengguna. Dengan adanya fitur ini, pengguna dapat secara mandiri menjaga keamanan akunnya, serta mencegah akses tidak sah akibat kebocoran password lama.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">updateAvatar(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
@@ -1007,17 +760,8 @@
     return redirect()->route('profile.edit')->with('status', 'Foto profil berhasil diperbarui.');
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini memproses pengunggahan dan pembaruan foto profil (avatar) pengguna. Langkah-langkah yang dilakukan:
-                    <ul class="list-disc ml-6 mt-2">
-                        <li>Memvalidasi file yang diunggah, memastikan file tersebut ada, berupa gambar (menggunakan validator 'image'), dan ukurannya tidak melebihi 2MB</li>
-                        <li>Mengambil data pengguna yang sedang login</li>
-                        <li>Jika pengguna sudah memiliki avatar sebelumnya, hapus avatar lama dari storage untuk menghemat ruang penyimpanan</li>
-                        <li>Menyimpan file avatar baru ke direktori 'avatars' pada disk 'public' menggunakan fitur storage Laravel</li>
-                        <li>Memperbarui field 'avatar' pada record pengguna di database dengan path file yang baru disimpan</li>
-                    </ul>
-                    
-                    Setelah proses selesai, pengguna diarahkan kembali ke halaman edit profil dengan pesan sukses. Fungsi ini menunjukkan implementasi yang baik untuk pengelolaan file dalam Laravel dengan penanganan file lama dan penggunaan sistem storage untuk keamanan dan fleksibilitas.
+                <p class="mb-4">
+                    <b>updateAvatar(Request $request)</b> adalah fungsi yang memproses pengunggahan dan pembaruan foto profil (avatar) pengguna. Fungsi ini memvalidasi file gambar yang diunggah, menghapus avatar lama jika ada, dan menyimpan avatar baru ke storage aplikasi. Dengan fitur ini, pengguna dapat memperbarui identitas visualnya di aplikasi, sehingga pengalaman penggunaan menjadi lebih personal dan menyenangkan.
                 </p>
             </div>
         </div>
