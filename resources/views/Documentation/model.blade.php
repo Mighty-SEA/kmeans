@@ -23,14 +23,39 @@
                 <pre><code class="language-php">class User extends Authenticatable
 {
     use HasFactory, Notifiable;
-    protected $fillable = ['name', 'email', 'password', 'avatar'];
-    protected $hidden = ['password', 'remember_token'];
-    protected function casts(): array { ... }
-    public function getAvatarUrlAttribute(): string { ... }
-}</code></pre>
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'avatar',
+    ];
+
+    protected $hidden = [
+        'password',
+        'remember_token',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'email_verified_at' => 'datetime',
+            'password' => 'hashed',
+        ];
+    }
+
+    public function getAvatarUrlAttribute(): string
+    {
+        if ($this->avatar) {
+            return asset('storage/' . $this->avatar);
+        }
+        return 'https://ui-avatars.com/api/?name=' . urlencode($this->name) . '&color=7F9CF5&background=EBF4FF';
+    }
+}
+</code></pre>
             </div>
             <p>
-                Model <b>User</b> berfungsi untuk merepresentasikan data pengguna aplikasi, baik sebagai admin maupun user biasa. Model ini mewarisi <i>Authenticatable</i> yang memungkinkan proses autentikasi pengguna secara otomatis oleh Laravel. Atribut <code>$fillable</code> mendefinisikan data yang dapat diisi secara massal, seperti nama, email, password, dan avatar. Sementara itu, <code>$hidden</code> digunakan untuk menyembunyikan data sensitif seperti password saat model dikonversi ke array atau JSON. Fungsi <code>getAvatarUrlAttribute</code> merupakan accessor yang digunakan untuk mengambil URL avatar pengguna, baik dari penyimpanan lokal maupun layanan avatar eksternal. Dengan demikian, model ini menjadi inti dari sistem autentikasi dan manajemen identitas pengguna dalam aplikasi.
+                Model <b>User</b> merepresentasikan data pengguna yang dapat mengakses aplikasi, baik sebagai admin maupun user biasa. Model ini mewarisi <i>Authenticatable</i> dari Laravel sehingga mendukung fitur autentikasi secara otomatis. Properti <code>$fillable</code> mendefinisikan atribut yang dapat diisi secara massal, seperti nama, email, password, dan avatar. Sementara <code>$hidden</code> digunakan untuk menyembunyikan data sensitif seperti password dan token saat model dikonversi ke array atau JSON. Method <code>getAvatarUrlAttribute</code> adalah accessor yang menghasilkan URL avatar pengguna, baik dari file yang diunggah maupun dari layanan avatar eksternal jika belum ada avatar yang diunggah. Model ini menjadi pusat pengelolaan identitas dan autentikasi pengguna dalam aplikasi.
             </p>
         </div>
 
@@ -40,15 +65,34 @@
                 <pre><code class="language-php">class Beneficiary extends Model
 {
     use HasFactory;
+    
     protected $table = 'beneficiaries';
     protected $guarded = ['id'];
-    protected $fillable = [...];
-    public function clusteringResult() { ... }
-    public function normalizationResult() { ... }
-}</code></pre>
+    protected $fillable = [
+        'nama',
+        'alamat',
+        'no_hp',
+        'usia',
+        'jumlah_anak',
+        'kelayakan_rumah',
+        'pendapatan_perbulan',
+        'nik',
+    ];
+
+    public function clusteringResult()
+    {
+        return $this->hasOne(ClusteringResult::class);
+    }
+
+    public function normalizationResult()
+    {
+        return $this->hasOne(NormalizationResult::class);
+    }
+}
+</code></pre>
             </div>
             <p>
-                Model <b>Beneficiary</b> digunakan untuk merepresentasikan data penerima bantuan dalam aplikasi. Model ini berfungsi sebagai pusat data utama yang akan diproses lebih lanjut, baik untuk proses normalisasi maupun clustering. Atribut-atribut seperti nama, alamat, usia, jumlah anak, kelayakan rumah, pendapatan per bulan, dan NIK didefinisikan dalam <code>$fillable</code> agar dapat diisi secara massal. Model ini juga memiliki relasi <i>one-to-one</i> dengan <b>ClusteringResult</b> dan <b>NormalizationResult</b>, yang berarti setiap penerima bantuan akan memiliki satu hasil clustering dan satu hasil normalisasi. Dengan demikian, model ini sangat penting dalam mendukung proses seleksi dan analisis data penerima bantuan secara otomatis dan objektif.
+                Model <b>Beneficiary</b> merepresentasikan data penerima bantuan yang menjadi objek utama dalam proses seleksi dan penyaluran bantuan. Model ini menyimpan informasi penting seperti nama, alamat, nomor HP, usia, jumlah anak, kelayakan rumah, pendapatan per bulan, dan NIK. Properti <code>$fillable</code> memastikan hanya atribut yang diizinkan yang dapat diisi secara massal, sedangkan <code>$guarded</code> melindungi atribut <code>id</code> dari pengisian massal. Model ini memiliki relasi <code>hasOne</code> ke <b>ClusteringResult</b> dan <b>NormalizationResult</b>, yang berarti setiap penerima bantuan dapat memiliki satu hasil clustering dan satu hasil normalisasi. Dengan struktur ini, model Beneficiary menjadi inti dari seluruh proses analisis dan pengambilan keputusan dalam aplikasi.
             </p>
         </div>
 
@@ -58,12 +102,27 @@
                 <pre><code class="language-php">class ClusteringResult extends Model
 {
     use HasFactory;
-    protected $fillable = [...];
-    public function beneficiary() { ... }
-}</code></pre>
+    
+    protected $fillable = [
+        'beneficiary_id',
+        'cluster',
+        'silhouette',
+        'num_clusters',
+        'max_iterations',
+        'execution_time',
+        'cluster_data',
+        'centroids',
+    ];
+
+    public function beneficiary()
+    {
+        return $this->belongsTo(Beneficiary::class);
+    }
+}
+</code></pre>
             </div>
             <p>
-                Model <b>ClusteringResult</b> berfungsi untuk menyimpan hasil dari proses clustering K-Means yang dilakukan terhadap data penerima bantuan. Setiap entri pada model ini berisi informasi seperti ID penerima bantuan, nomor cluster yang didapat, nilai silhouette (untuk mengukur kualitas clustering), jumlah cluster, jumlah iterasi, waktu eksekusi, data cluster, dan posisi centroid. Model ini memiliki relasi <i>belongsTo</i> ke <b>Beneficiary</b>, menandakan bahwa setiap hasil clustering terkait dengan satu penerima bantuan. Dengan adanya model ini, aplikasi dapat merekam dan menampilkan hasil pengelompokan secara historis dan terstruktur.
+                Model <b>ClusteringResult</b> digunakan untuk menyimpan hasil pengelompokan (clustering) yang dilakukan dengan algoritma K-Means terhadap data penerima bantuan. Setiap record pada model ini berisi informasi seperti ID penerima bantuan, nomor cluster hasil pengelompokan, nilai silhouette (untuk evaluasi kualitas cluster), jumlah cluster, jumlah maksimum iterasi, waktu eksekusi, data cluster, dan posisi centroid. Model ini memiliki relasi <code>belongsTo</code> ke <b>Beneficiary</b>, sehingga setiap hasil clustering selalu terkait dengan satu penerima bantuan. Dengan adanya model ini, aplikasi dapat menyimpan dan menampilkan riwayat hasil clustering secara detail dan terstruktur.
             </p>
         </div>
 
@@ -73,13 +132,45 @@
                 <pre><code class="language-php">class ClusteringSetting extends Model
 {
     use HasFactory;
-    protected $fillable = [...];
-    protected $casts = [...];
-    public static function getCurrentSettings() { ... }
-}</code></pre>
+    
+    protected $fillable = [
+        'name',
+        'num_clusters',
+        'max_iterations',
+        'is_default',
+        'attributes',
+        'normalization',
+    ];
+    
+    protected $casts = [
+        'is_default' => 'boolean',
+        'attributes' => 'array',
+    ];
+    
+    public static function getCurrentSettings()
+    {
+        return self::firstOrCreate(
+            ['id' => 1],
+            [
+                'name' => 'Default Setting',
+                'num_clusters' => 3,
+                'max_iterations' => 100,
+                'is_default' => true,
+                'normalization' => 'robust',
+                'attributes' => [
+                    'income' => true,
+                    'dependents' => true,
+                    'house_status' => true,
+                    'house_condition' => true,
+                ]
+            ]
+        );
+    }
+}
+</code></pre>
             </div>
             <p>
-                Model <b>ClusteringSetting</b> digunakan untuk menyimpan dan mengelola pengaturan algoritma K-Means yang digunakan dalam aplikasi. Pengaturan ini meliputi nama konfigurasi, jumlah cluster, jumlah maksimum iterasi, status default, atribut yang digunakan, serta metode normalisasi. Dengan adanya properti <code>$casts</code>, beberapa atribut seperti <code>is_default</code> dan <code>attributes</code> akan otomatis dikonversi ke tipe data yang sesuai (boolean dan array). Fungsi <code>getCurrentSettings</code> memungkinkan aplikasi untuk selalu mendapatkan pengaturan clustering yang aktif atau membuat pengaturan default jika belum ada. Model ini sangat penting untuk memastikan proses clustering berjalan sesuai parameter yang diinginkan dan dapat diubah sesuai kebutuhan penelitian.
+                Model <b>ClusteringSetting</b> berfungsi untuk menyimpan konfigurasi atau pengaturan yang digunakan dalam proses clustering K-Means. Pengaturan yang disimpan meliputi nama setting, jumlah cluster, jumlah maksimum iterasi, status default, atribut yang digunakan untuk clustering, dan metode normalisasi. Properti <code>$casts</code> digunakan untuk mengonversi atribut <code>is_default</code> menjadi boolean dan <code>attributes</code> menjadi array. Method <code>getCurrentSettings</code> digunakan untuk mendapatkan atau membuat pengaturan clustering default. Model ini sangat penting agar proses clustering dapat berjalan sesuai parameter yang diinginkan dan dapat diatur ulang sesuai kebutuhan analisis.
             </p>
         </div>
 
@@ -89,14 +180,46 @@
                 <pre><code class="language-php">class DecisionResult extends Model
 {
     use HasFactory;
-    protected $fillable = [...];
-    public function items() { ... }
-    public function beneficiaries() { ... }
-    public function user() { ... }
-}</code></pre>
+    
+    protected $fillable = [
+        'title',
+        'description',
+        'cluster',
+        'count',
+        'notes',
+        'user_id',
+        'sort_by',
+        'sort_direction',
+        'limit',
+        'result_data',
+    ];
+
+    public function items(): HasMany
+    {
+        return $this->hasMany(DecisionResultItem::class);
+    }
+
+    public function beneficiaries()
+    {
+        return $this->hasManyThrough(
+            Beneficiary::class,
+            DecisionResultItem::class,
+            'decision_result_id',
+            'id',
+            'id',
+            'beneficiary_id'
+        );
+    }
+    
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+}
+</code></pre>
             </div>
             <p>
-                Model <b>DecisionResult</b> berfungsi untuk menyimpan hasil keputusan yang diambil berdasarkan hasil clustering dan kriteria tertentu. Model ini menyimpan informasi seperti judul keputusan, deskripsi, cluster yang dipilih, jumlah data, catatan, user yang membuat keputusan, serta data hasil keputusan. Model ini memiliki relasi <i>hasMany</i> ke <b>DecisionResultItem</b> dan <i>hasManyThrough</i> ke <b>Beneficiary</b> melalui DecisionResultItem, sehingga dapat menghubungkan hasil keputusan dengan data penerima bantuan yang terpilih. Selain itu, model ini juga memiliki relasi <i>belongsTo</i> ke <b>User</b> yang menandakan siapa pengambil keputusan. Dengan demikian, model ini sangat penting dalam mendokumentasikan dan melacak proses pengambilan keputusan dalam sistem.
+                Model <b>DecisionResult</b> digunakan untuk menyimpan hasil keputusan yang diambil berdasarkan hasil clustering dan kriteria tertentu. Model ini menyimpan informasi seperti judul keputusan, deskripsi, cluster yang dipilih, jumlah penerima yang dipilih, catatan, user yang membuat keputusan, serta data hasil keputusan. Model ini memiliki relasi <code>hasMany</code> ke <b>DecisionResultItem</b> untuk menyimpan daftar penerima yang terpilih, <code>hasManyThrough</code> ke <b>Beneficiary</b> untuk mengakses data penerima melalui item keputusan, dan <code>belongsTo</code> ke <b>User</b> untuk mengetahui siapa yang membuat keputusan. Dengan struktur ini, model DecisionResult sangat penting untuk mendokumentasikan dan melacak proses pengambilan keputusan dalam aplikasi.
             </p>
         </div>
 
@@ -105,13 +228,25 @@
             <div class="bg-gray-50 p-4 rounded-lg mb-4">
                 <pre><code class="language-php">class DecisionResultItem extends Model
 {
-    protected $fillable = [...];
-    public function decisionResult() { ... }
-    public function beneficiary() { ... }
-}</code></pre>
+    protected $fillable = [
+        'decision_result_id',
+        'beneficiary_id',
+    ];
+
+    public function decisionResult(): BelongsTo
+    {
+        return $this->belongsTo(DecisionResult::class);
+    }
+
+    public function beneficiary(): BelongsTo
+    {
+        return $this->belongsTo(Beneficiary::class);
+    }
+}
+</code></pre>
             </div>
             <p>
-                Model <b>DecisionResultItem</b> merupakan model perantara yang menghubungkan antara hasil keputusan (<b>DecisionResult</b>) dengan data penerima bantuan (<b>Beneficiary</b>). Setiap item pada model ini berisi ID hasil keputusan dan ID penerima bantuan yang terpilih. Dengan adanya model ini, aplikasi dapat merepresentasikan satu keputusan yang terdiri dari beberapa penerima bantuan secara terstruktur dan mudah untuk ditelusuri. Model ini juga memudahkan proses pelacakan dan analisis hasil keputusan yang telah diambil.
+                Model <b>DecisionResultItem</b> adalah model perantara yang menghubungkan antara hasil keputusan (<b>DecisionResult</b>) dengan data penerima bantuan (<b>Beneficiary</b>). Setiap record pada model ini berisi ID hasil keputusan dan ID penerima bantuan yang terpilih. Model ini memiliki relasi <code>belongsTo</code> ke <b>DecisionResult</b> dan <b>Beneficiary</b>, sehingga memudahkan pelacakan penerima bantuan yang terpilih dalam setiap keputusan. Dengan adanya model ini, aplikasi dapat merepresentasikan satu keputusan yang terdiri dari beberapa penerima bantuan secara terstruktur dan mudah untuk dianalisis.
             </p>
         </div>
 
@@ -121,12 +256,27 @@
                 <pre><code class="language-php">class NormalizationResult extends Model
 {
     use HasFactory;
-    protected $fillable = [...];
-    public function beneficiary() { ... }
-}</code></pre>
+    
+    protected $fillable = [
+        'beneficiary_id',
+        'usia_normalized',
+        'jumlah_anak_normalized',
+        'kelayakan_rumah_normalized',
+        'pendapatan_perbulan_normalized',
+        'normalized_data',
+        'min_values',
+        'max_values',
+    ];
+
+    public function beneficiary()
+    {
+        return $this->belongsTo(Beneficiary::class);
+    }
+}
+</code></pre>
             </div>
             <p>
-                Model <b>NormalizationResult</b> digunakan untuk menyimpan hasil normalisasi data penerima bantuan sebelum dilakukan proses clustering. Data yang dinormalisasi meliputi usia, jumlah anak, kelayakan rumah, pendapatan per bulan, serta data minimum dan maksimum yang digunakan dalam proses normalisasi. Model ini memiliki relasi <i>belongsTo</i> ke <b>Beneficiary</b>, sehingga setiap hasil normalisasi terkait dengan satu penerima bantuan. Dengan adanya model ini, aplikasi dapat memastikan bahwa data yang digunakan untuk clustering sudah berada dalam skala yang seragam dan siap untuk dianalisis lebih lanjut.
+                Model <b>NormalizationResult</b> digunakan untuk menyimpan hasil normalisasi data penerima bantuan sebelum dilakukan proses clustering. Data yang disimpan meliputi nilai-nilai yang telah dinormalisasi untuk atribut usia, jumlah anak, kelayakan rumah, dan pendapatan per bulan, serta data minimum dan maksimum yang digunakan dalam proses normalisasi. Model ini memiliki relasi <code>belongsTo</code> ke <b>Beneficiary</b>, sehingga setiap hasil normalisasi selalu terkait dengan satu penerima bantuan. Dengan adanya model ini, aplikasi dapat memastikan bahwa data yang digunakan untuk clustering sudah berada dalam skala yang seragam dan siap untuk dianalisis lebih lanjut.
             </p>
         </div>
 

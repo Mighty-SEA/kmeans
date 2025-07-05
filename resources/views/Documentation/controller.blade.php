@@ -20,7 +20,7 @@
         <div class="mb-10">
             <h3 class="text-2xl font-bold mb-2">1. AuthController</h3>
             <p class="mb-4">
-                Controller AuthController menangani seluruh proses autentikasi pengguna dalam aplikasi, termasuk login, registrasi, dan logout.
+                <b>AuthController</b> merupakan komponen fundamental dalam sistem aplikasi K-Means Clustering yang bertanggung jawab atas seluruh proses autentikasi pengguna. Keberadaan controller ini sangat penting untuk menjaga keamanan data dan memastikan hanya pengguna yang berhak dapat mengakses fitur-fitur aplikasi. Dalam konteks pengembangan perangkat lunak berbasis web, autentikasi menjadi lapisan pertama dalam sistem keamanan, sehingga implementasi yang baik pada AuthController akan berdampak langsung pada integritas dan keandalan aplikasi secara keseluruhan. AuthController tidak hanya mengelola proses login dan logout, tetapi juga pendaftaran pengguna baru, serta pengelolaan sesi pengguna. Dengan demikian, controller ini menjadi gerbang utama interaksi antara pengguna dan sistem.
             </p>
             
             <div class="mb-6">
@@ -30,9 +30,9 @@
 {
     return view('auth.login');
 }</code></pre>
-            </div>
-            <p>
-                    Fungsi ini bertanggung jawab untuk menampilkan halaman login kepada pengguna. Fungsi ini merender view 'auth.login' yang berisi formulir untuk memasukkan email dan password.
+                </div>
+                <p class="mb-4">
+                    <b>showLoginForm()</b> adalah fungsi yang bertugas untuk menampilkan halaman login kepada pengguna. Secara konseptual, fungsi ini menjadi titik awal proses autentikasi, di mana pengguna diberikan antarmuka untuk memasukkan kredensial berupa email dan password. Dalam konteks keamanan aplikasi, penyajian form login yang terpisah dan terstruktur sangat penting untuk meminimalisir risiko serangan seperti phishing atau pencurian data. Dengan memanfaatkan view 'auth.login', fungsi ini memastikan bahwa pengguna diarahkan ke halaman yang tepat sebelum dapat mengakses fitur-fitur lain dalam aplikasi. Penempatan fungsi ini pada controller juga memudahkan pengelolaan logika tampilan dan pemisahan antara proses bisnis dan presentasi.
                 </p>
             </div>
             
@@ -55,10 +55,10 @@
         'email' => 'Email atau password yang dimasukkan tidak sesuai.',
     ])->onlyInput('email');</code></pre>
                 </div>
-                <p>
-                    Fungsi ini memproses permintaan login dengan memvalidasi kredensial yang dimasukkan pengguna. Pertama, fungsi memvalidasi data yang dikirim, memastikan email dan password telah diisi. Kemudian mencoba mengautentikasi pengguna menggunakan Auth::attempt(). Jika berhasil, sesi pengguna diregenerasi untuk keamanan dan pengguna diarahkan ke halaman yang dimaksud (atau halaman utama jika tidak ada). Jika gagal, pengguna dikembalikan ke halaman login dengan pesan kesalahan.
-            </p>
-        </div>
+                <p class="mb-4">
+                    <b>login(Request $request)</b> merupakan inti dari proses autentikasi pengguna. Fungsi ini tidak hanya memvalidasi input yang diberikan oleh pengguna, tetapi juga melakukan proses verifikasi terhadap data yang tersimpan di database. Validasi input sangat penting untuk memastikan bahwa data yang masuk telah sesuai dengan format yang diharapkan, sehingga dapat mencegah terjadinya error atau celah keamanan. Setelah validasi, fungsi ini menggunakan <i>Auth::attempt()</i> untuk mencocokkan kredensial pengguna dengan data yang ada. Jika autentikasi berhasil, sesi pengguna akan diregenerasi untuk mencegah serangan session fixation, dan pengguna diarahkan ke halaman utama atau halaman yang sebelumnya ingin diakses. Jika gagal, pengguna akan menerima pesan error yang informatif. Proses ini sangat krusial dalam menjaga keamanan dan kenyamanan pengguna dalam menggunakan aplikasi.
+                </p>
+            </div>
 
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">showRegisterForm()</h4>
@@ -67,9 +67,9 @@
 {
     return view('auth.register');
 }</code></pre>
-            </div>
-            <p>
-                    Fungsi ini bertanggung jawab untuk menampilkan halaman registrasi kepada pengguna. Fungsi ini merender view 'auth.register' yang berisi formulir pendaftaran pengguna baru.
+                </div>
+                <p class="mb-4">
+                    <b>showRegisterForm()</b> berfungsi untuk menampilkan halaman pendaftaran pengguna baru. Dalam pengembangan aplikasi berbasis web, proses registrasi merupakan pintu masuk bagi pengguna baru untuk dapat memanfaatkan seluruh fitur aplikasi. Fungsi ini secara khusus memisahkan logika tampilan form registrasi dari proses bisnis, sehingga memudahkan pengelolaan dan pemeliharaan kode. Dengan menampilkan view 'auth.register', aplikasi memberikan pengalaman pengguna yang terstruktur dan mudah dipahami, serta memastikan bahwa proses pendaftaran berjalan secara terpisah dari proses lain seperti login atau pengelolaan data.
                 </p>
             </div>
             
@@ -95,10 +95,10 @@
     return redirect('/');
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini memproses pendaftaran pengguna baru. Pertama, data yang dikirim divalidasi dengan beberapa aturan: nama harus diisi, email harus valid dan unik, dan password minimal 8 karakter dan harus dikonfirmasi. Setelah validasi, pengguna baru dibuat di database dengan password yang di-hash untuk keamanan. Setelah berhasil dibuat, pengguna langsung diautentikasi dan diarahkan ke halaman utama.
-            </p>
-        </div>
+                <p class="mb-4">
+                    <b>register(Request $request)</b> adalah fungsi yang menangani proses pendaftaran pengguna baru secara menyeluruh. Fungsi ini melakukan validasi data yang dimasukkan oleh pengguna, seperti nama, email, dan password, untuk memastikan bahwa data yang diterima telah sesuai dengan standar keamanan dan integritas data. Validasi email unik sangat penting untuk mencegah duplikasi akun, sedangkan validasi password memastikan keamanan akun pengguna. Setelah data valid, fungsi ini membuat akun baru di database dengan password yang sudah di-hash, sehingga password tidak disimpan dalam bentuk teks asli. Setelah akun berhasil dibuat, pengguna langsung diautentikasi dan diarahkan ke halaman utama. Proses ini mendukung pengalaman pengguna yang seamless dan aman, serta memperkuat sistem keamanan aplikasi.
+                </p>
+            </div>
 
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">logout(Request $request)</h4>
@@ -112,9 +112,9 @@
 
     return redirect('/login');
 }</code></pre>
-            </div>
-            <p>
-                    Fungsi ini menangani proses logout pengguna. Pertama, fungsi mengakhiri sesi autentikasi pengguna dengan Auth::logout(). Kemudian, sesi saat ini diinvalidasi dan token CSRF diregenerasi untuk keamanan. Terakhir, pengguna diarahkan kembali ke halaman login.
+                </div>
+                <p class="mb-4">
+                    <b>logout(Request $request)</b> merupakan fungsi yang bertanggung jawab untuk mengakhiri sesi autentikasi pengguna. Proses logout sangat penting untuk menjaga keamanan akun, terutama pada aplikasi yang digunakan secara bersama-sama atau di perangkat publik. Fungsi ini pertama-tama memanggil <i>Auth::logout()</i> untuk menghapus status autentikasi pengguna. Selanjutnya, sesi pengguna diinvalidasi dan token CSRF diregenerasi untuk mencegah penyalahgunaan sesi lama. Setelah proses logout selesai, pengguna diarahkan kembali ke halaman login. Dengan demikian, fungsi ini memastikan bahwa tidak ada sesi yang tertinggal dan seluruh proses logout berjalan dengan aman dan efisien.
                 </p>
             </div>
         </div>
@@ -122,256 +122,126 @@
         <div class="mb-10">
             <h3 class="text-2xl font-bold mb-2">2. BeneficiaryController</h3>
             <p class="mb-4">
-                Controller BeneficiaryController mengelola seluruh operasi terkait data penerima bantuan (beneficiaries), yang merupakan data utama dalam aplikasi ini.
+                <b>BeneficiaryController</b> merupakan controller yang berperan sentral dalam pengelolaan data penerima bantuan pada aplikasi K-Means Clustering. Controller ini bertanggung jawab untuk mengatur seluruh siklus hidup data penerima, mulai dari penambahan, pengeditan, penghapusan, hingga ekspor dan impor data. Dengan adanya controller ini, proses manajemen data penerima bantuan menjadi lebih terstruktur, efisien, dan terjamin integritasnya. Setiap fungsi di dalamnya dirancang untuk mendukung kebutuhan operasional aplikasi, sekaligus memastikan bahwa data yang dikelola selalu valid dan siap digunakan dalam proses analisis lebih lanjut, seperti clustering dan pengambilan keputusan. Berikut penjelasan detail setiap fungsi utama dalam BeneficiaryController:
             </p>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">dashboard()</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function dashboard()
 {
-    // Mengambil total penerima
-    $totalPenerima = Beneficiary::count();
-    
-    // Mengambil 5 data penerima terbaru
-    $latestData = Beneficiary::latest()->take(5)->get();
-    
-    // Menambahkan data cluster ke penerima terbaru
-    foreach ($latestData as $beneficiary) {
-        $clusterResult = ClusteringResult::where('beneficiary_id', $beneficiary->id)->first();
-        $beneficiary->cluster = $clusterResult ? $clusterResult->cluster : null;
-    }
-    
-    // Mengambil distribusi cluster
-    $clusterDistribution = ClusteringResult::select('cluster', DB::raw('count(*) as total'))
-        ->groupBy('cluster')
-        ->pluck('total', 'cluster')
-        ->toArray();
-    
-    // Memastikan semua indeks cluster (0, 1, 2) tersedia
-    $clusterCounts = [
-        0 => $clusterDistribution[0] ?? 0,
-        1 => $clusterDistribution[1] ?? 0,
-        2 => $clusterDistribution[2] ?? 0
-    ];
-    
-    // Menghitung rata-rata fitur per cluster
-    $clusterMeans = [];
-    for ($i = 0; $i < 3; $i++) {
-        $clusterData = Beneficiary::join('clustering_results', 'beneficiaries.id', '=', 'clustering_results.beneficiary_id')
-            ->where('clustering_results.cluster', $i)
-            ->get();
-        
-        $count = $clusterData->count();
-        $clusterMeans[$i] = [
-            'usia' => $count ? $clusterData->avg('usia') : 0,
-            'jumlah_anak' => $count ? $clusterData->avg('jumlah_anak') : 0,
-            'kelayakan_rumah' => $count ? $clusterData->avg('kelayakan_rumah') : 0,
-            'pendapatan' => $count ? $clusterData->avg('pendapatan_perbulan') : 0,
-        ];
-    }
-    
-    return view('dashboard', compact(
-        'totalPenerima',
-        'latestData',
-        'clusterCounts',
-        'clusterMeans'
-    ));
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menyiapkan data untuk tampilan dashboard utama. Pertama, menghitung total jumlah penerima bantuan dan mengambil 5 data penerima terbaru. Kemudian, untuk setiap data terbaru, fungsi menambahkan informasi cluster (jika ada). Fungsi juga mengambil distribusi jumlah anggota per cluster dan memastikan semua indeks cluster tersedia dengan nilai default 0 jika tidak ada data. Fungsi juga menghitung rata-rata fitur (usia, jumlah anak, kelayakan rumah, dan pendapatan) untuk setiap cluster. Semua data ini kemudian dilewatkan ke view 'dashboard' untuk ditampilkan.
+                <p class="mb-4">
+                    <b>dashboard()</b> adalah fungsi yang bertugas untuk menyiapkan dan menyajikan data ringkasan terkait penerima bantuan pada halaman utama dashboard aplikasi. Fungsi ini tidak hanya menampilkan jumlah total penerima, tetapi juga menampilkan data penerima terbaru, distribusi anggota per cluster, serta rata-rata fitur penting seperti usia, jumlah anak, kelayakan rumah, dan pendapatan per cluster. Dengan demikian, fungsi ini memberikan gambaran menyeluruh kepada pengguna mengenai kondisi data penerima bantuan secara real-time. Penyajian data yang komprehensif ini sangat penting untuk mendukung proses monitoring, evaluasi, dan pengambilan keputusan berbasis data dalam aplikasi.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">index(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function index(Request $request)
 {
-    $search = $request->input('search');
-    $perPage = $request->input('perPage', 10);
-    
-    $query = Beneficiary::query();
-    
-    // Filter berdasarkan pencarian
-    if ($search) {
-        $query->where(function($q) use ($search) {
-            $q->where('nama', 'like', "%{$search}%")
-              ->orWhere('nik', 'like', "%{$search}%")
-              ->orWhere('alamat', 'like', "%{$search}%")
-              ->orWhere('no_hp', 'like', "%{$search}%");
-        });
-    }
-    
-    $penerima = $query->paginate($perPage)->withQueryString();
-    
-    return view('beneficiaries.index', compact('penerima', 'search', 'perPage'));
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan daftar penerima bantuan dengan fitur pencarian dan paginasi. Fungsi mengambil parameter pencarian dan jumlah item per halaman dari request. Jika ada parameter pencarian, fungsi akan memfilter data berdasarkan nama, NIK, alamat, atau nomor HP. Hasil query kemudian di-paginate sesuai dengan jumlah item per halaman yang diminta dan ditampilkan di view 'beneficiaries.index'.
-            </p>
-        </div>
-
+                <p class="mb-4">
+                    <b>index(Request $request)</b> berfungsi untuk menampilkan daftar lengkap penerima bantuan dengan fitur pencarian dan paginasi. Fungsi ini sangat penting dalam konteks pengelolaan data skala besar, di mana pengguna dapat dengan mudah mencari data penerima berdasarkan nama, NIK, alamat, atau nomor HP. Dengan adanya fitur paginasi, tampilan data menjadi lebih terorganisir dan mudah diakses, meskipun jumlah data sangat banyak. Fungsi ini juga memastikan bahwa setiap permintaan pencarian atau perubahan jumlah data per halaman diproses secara efisien, sehingga pengalaman pengguna tetap optimal.
+                </p>
+            </div>
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">create()</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function create()
 {
-    return view('beneficiaries.create');
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan halaman formulir untuk menambahkan data penerima bantuan baru. Fungsi ini hanya merender view 'beneficiaries.create' yang berisi formulir input data.
+                <p class="mb-4">
+                    <b>create()</b> adalah fungsi yang bertugas untuk menampilkan formulir penambahan data penerima bantuan baru. Fungsi ini memisahkan logika tampilan dari proses bisnis, sehingga memudahkan pengelolaan dan pemeliharaan kode. Dengan menyediakan form input yang terstruktur, aplikasi memastikan bahwa proses penambahan data baru dapat dilakukan dengan mudah dan terstandarisasi, serta meminimalisir kesalahan input dari pengguna.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">store(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function store(Request $request)
 {
-    $validated = $request->validate([
-        'nik' => 'required',
-        'nama' => 'required',
-        'alamat' => 'required',
-        'no_hp' => 'required',
-        'usia' => 'required|integer',
-        'jumlah_anak' => 'required|integer',
-        'kelayakan_rumah' => 'required',
-        'pendapatan_perbulan' => 'required|numeric',
-    ]);
-    Beneficiary::create($validated);
-    return redirect()->route('beneficiary.index')->with('success', 'Data berhasil ditambahkan!');
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini memproses penambahan data penerima bantuan baru. Pertama, fungsi memvalidasi input dari formulir, memastikan semua field yang diperlukan telah diisi dengan benar. Kemudian, fungsi membuat record baru di database menggunakan model Beneficiary. Setelah berhasil, pengguna diarahkan kembali ke halaman daftar penerima bantuan dengan pesan sukses.
+                <p class="mb-4">
+                    <b>store(Request $request)</b> merupakan fungsi yang menangani proses penyimpanan data penerima bantuan baru ke dalam database. Fungsi ini melakukan validasi ketat terhadap setiap input yang diberikan, seperti NIK, nama, alamat, nomor HP, usia, jumlah anak, kelayakan rumah, dan pendapatan. Validasi ini sangat penting untuk menjaga integritas dan kualitas data yang masuk ke sistem. Setelah data dinyatakan valid, fungsi ini akan menyimpan data ke database dan memberikan umpan balik kepada pengguna berupa pesan sukses. Proses ini memastikan bahwa hanya data yang benar-benar valid yang dapat masuk ke dalam sistem, sehingga mendukung analisis data yang akurat di tahap selanjutnya.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">edit($id)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function edit($id)
 {
-    $penerima = Beneficiary::findOrFail($id);
-    return view('beneficiaries.edit', compact('penerima'));
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menampilkan halaman formulir untuk mengedit data penerima bantuan yang sudah ada. Fungsi mengambil data penerima berdasarkan ID yang diberikan dan mengirimkannya ke view 'beneficiaries.edit' untuk ditampilkan dalam formulir.
+                <p class="mb-4">
+                    <b>edit($id)</b> adalah fungsi yang digunakan untuk menampilkan formulir pengeditan data penerima bantuan yang sudah ada. Fungsi ini mengambil data penerima berdasarkan ID yang diberikan, kemudian menampilkannya dalam form yang dapat diedit oleh pengguna. Dengan adanya fitur ini, aplikasi memberikan fleksibilitas kepada pengguna untuk memperbaiki atau memperbarui data yang mungkin mengalami perubahan atau kesalahan input sebelumnya. Proses ini sangat penting untuk menjaga akurasi dan relevansi data dalam sistem.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">update(Request $request, $id)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function update(Request $request, $id)
 {
-    $validated = $request->validate([
-        'nik' => 'required',
-        'nama' => 'required',
-        'alamat' => 'required',
-        'no_hp' => 'required',
-        'usia' => 'required|integer',
-        'jumlah_anak' => 'required|integer',
-        'kelayakan_rumah' => 'required',
-        'pendapatan_perbulan' => 'required|numeric',
-    ]);
-    $penerima = Beneficiary::findOrFail($id);
-    $penerima->update($validated);
-    return redirect()->route('beneficiary.index')->with('success', 'Data berhasil diupdate!');
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini memproses pembaruan data penerima bantuan yang sudah ada. Fungsi memvalidasi input dari formulir, kemudian mencari data penerima berdasarkan ID yang diberikan. Setelah data ditemukan, fungsi memperbarui data tersebut dengan nilai-nilai baru dari formulir. Setelah berhasil, pengguna diarahkan kembali ke halaman daftar penerima bantuan dengan pesan sukses.
+                <p class="mb-4">
+                    <b>update(Request $request, $id)</b> berfungsi untuk memproses pembaruan data penerima bantuan yang sudah ada di database. Fungsi ini melakukan validasi ulang terhadap data yang diinputkan, memastikan bahwa setiap perubahan yang dilakukan tetap memenuhi standar kualitas data. Setelah data valid, fungsi ini akan memperbarui data penerima di database dan memberikan umpan balik kepada pengguna. Proses update ini sangat penting untuk menjaga konsistensi dan keakuratan data, terutama dalam aplikasi yang datanya sering mengalami perubahan.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">destroy($id)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function destroy($id)
 {
-    // Cari data penerima bantuan berdasarkan ID
-    $beneficiary = Beneficiary::findOrFail($id);
-    
-    // Hapus data normalisasi dan clustering jika ada
-    $beneficiary->normalizationResult()->delete();
-    $beneficiary->clusteringResult()->delete();
-    
-    // Hapus data penerima
-    $beneficiary->delete();
-    
-    return redirect()->route('beneficiary.index')->with('success', 'Data penerima bantuan berhasil dihapus');
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menghapus data penerima bantuan beserta data terkait lainnya. Fungsi mencari data penerima berdasarkan ID, lalu menghapus data normalisasi dan clustering yang terkait dengan penerima tersebut (jika ada), kemudian menghapus data penerima itu sendiri. Pendekatan ini memastikan tidak ada data yang tertinggal atau menjadi orphaned setelah penghapusan. Setelah berhasil, pengguna diarahkan kembali ke halaman daftar penerima bantuan dengan pesan sukses.
+                <p class="mb-4">
+                    <b>destroy($id)</b> adalah fungsi yang bertanggung jawab untuk menghapus data penerima bantuan beserta data terkait lainnya dari sistem. Fungsi ini tidak hanya menghapus data utama penerima, tetapi juga memastikan bahwa data normalisasi dan clustering yang terkait juga dihapus, sehingga tidak ada data yang tertinggal atau menjadi orphaned. Proses penghapusan yang menyeluruh ini sangat penting untuk menjaga kebersihan dan integritas database, serta mencegah terjadinya inkonsistensi data di masa mendatang.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">exportExcel(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function exportExcel(Request $request)
 {
-    $columns = $request->input('columns', [
-        'nik',
-        'nama',
-        'alamat',
-        'no_hp',
-        'usia',
-        'jumlah_anak',
-        'kelayakan_rumah',
-        'pendapatan_perbulan',
-    ]);
-    return Excel::download(new BeneficiaryExport($columns), 'beneficiary.xlsx');
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini mengekspor data penerima bantuan ke format Excel. Fungsi mengambil parameter kolom yang akan diekspor dari request, dengan nilai default semua kolom. Kemudian menggunakan class BeneficiaryExport untuk menghasilkan file Excel dan mengunduhkannya dengan nama 'beneficiary.xlsx'. Fitur ini memudahkan pengguna untuk melakukan analisis data lebih lanjut di luar aplikasi.
+                <p class="mb-4">
+                    <b>exportExcel(Request $request)</b> merupakan fungsi yang memungkinkan pengguna untuk mengekspor data penerima bantuan ke dalam format Excel. Fitur ini sangat bermanfaat untuk keperluan analisis data lebih lanjut di luar aplikasi, seperti pembuatan laporan atau visualisasi data menggunakan perangkat lunak lain. Dengan menyediakan opsi ekspor, aplikasi mendukung kebutuhan pengguna dalam mengelola dan memanfaatkan data secara lebih fleksibel dan profesional.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">importExcel(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function importExcel(Request $request)
 {
-    $request->validate([
-        'file' => 'required|mimes:xlsx,xls'
-    ]);
-    Excel::import(new BeneficiaryImport, $request->file('file'));
-    return redirect()->route('beneficiary.index')->with('success', 'Data berhasil diimport!');
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini mengimpor data penerima bantuan dari file Excel. Fungsi memvalidasi bahwa file yang diunggah adalah file Excel (format xlsx atau xls), kemudian menggunakan class BeneficiaryImport untuk memproses file dan menyimpan data ke database. Setelah berhasil, pengguna diarahkan kembali ke halaman daftar penerima bantuan dengan pesan sukses. Fitur ini memudahkan pengguna untuk menambahkan banyak data sekaligus tanpa harus menginputnya satu per satu.
+                <p class="mb-4">
+                    <b>importExcel(Request $request)</b> adalah fungsi yang memudahkan pengguna untuk menambahkan banyak data penerima bantuan sekaligus melalui file Excel. Fungsi ini melakukan validasi terhadap file yang diunggah, memastikan format dan isi file sesuai dengan standar yang ditetapkan. Dengan fitur impor ini, proses input data menjadi jauh lebih efisien, terutama ketika harus menangani data dalam jumlah besar. Hal ini sangat mendukung efisiensi operasional dan mempercepat proses digitalisasi data penerima bantuan.
                 </p>
             </div>
-
             <div class="mb-6">
                 <h4 class="text-xl font-semibold mb-2">bulkDelete(Request $request)</h4>
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function bulkDelete(Request $request)
 {
-    if ($request->input('select_all') == 1) {
-        Beneficiary::query()->delete();
-        return redirect()->route('beneficiary.index')->with('success', 'Semua data berhasil dihapus!');
-    }
-    $ids = $request->input('ids', []);
-    if (!empty($ids)) {
-        Beneficiary::whereIn('id', $ids)->delete();
-        return redirect()->route('beneficiary.index')->with('success', 'Data terpilih berhasil dihapus!');
-    }
-    return redirect()->route('beneficiary.index')->with('success', 'Tidak ada data yang dipilih.');
+    // ... kode ...
 }</code></pre>
                 </div>
-                <p>
-                    Fungsi ini menghapus banyak data penerima bantuan sekaligus. Jika parameter 'select_all' bernilai 1, semua data penerima akan dihapus dari database. Jika tidak, fungsi mengambil array ID dari request dan menghapus data penerima yang sesuai. Fungsi juga menangani kasus di mana tidak ada ID yang dipilih. Setelah berhasil, pengguna diarahkan kembali ke halaman daftar penerima bantuan dengan pesan sukses. Fitur ini sangat berguna untuk manajemen data massal.
+                <p class="mb-4">
+                    <b>bulkDelete(Request $request)</b> adalah fungsi yang dirancang untuk menghapus banyak data penerima bantuan sekaligus, baik seluruh data maupun data terpilih. Fitur ini sangat berguna dalam manajemen data massal, misalnya ketika perlu melakukan reset data atau membersihkan data yang tidak lagi relevan. Dengan adanya fungsi ini, proses penghapusan data menjadi lebih cepat, efisien, dan terkontrol, sehingga mendukung pengelolaan database yang sehat dan terstruktur.
                 </p>
             </div>
         </div>
