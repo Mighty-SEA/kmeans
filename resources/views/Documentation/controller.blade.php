@@ -129,11 +129,56 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function dashboard()
 {
-    // ... kode ...
-}</code></pre>
+    // Mengambil total penerima
+    $totalPenerima = Beneficiary::count();
+    
+    // Mengambil 5 data penerima terbaru
+    $latestData = Beneficiary::latest()->take(5)->get();
+    
+    // Menambahkan data cluster ke penerima terbaru
+    foreach ($latestData as $beneficiary) {
+        $clusterResult = ClusteringResult::where('beneficiary_id', $beneficiary->id)->first();
+        $beneficiary->cluster = $clusterResult ? $clusterResult->cluster : null;
+    }
+    
+    // Mengambil distribusi cluster
+    $clusterDistribution = ClusteringResult::select('cluster', DB::raw('count(*) as total'))
+        ->groupBy('cluster')
+        ->pluck('total', 'cluster')
+        ->toArray();
+    
+    // Memastikan semua indeks cluster (0, 1, 2) tersedia
+    $clusterCounts = [
+        0 => $clusterDistribution[0] ?? 0,
+        1 => $clusterDistribution[1] ?? 0,
+        2 => $clusterDistribution[2] ?? 0
+    ];
+    
+    // Menghitung rata-rata fitur per cluster
+    $clusterMeans = [];
+    for ($i = 0; $i < 3; $i++) {
+        $clusterData = Beneficiary::join('clustering_results', 'beneficiaries.id', '=', 'clustering_results.beneficiary_id')
+            ->where('clustering_results.cluster', $i)
+            ->get();
+        
+        $count = $clusterData->count();
+        $clusterMeans[$i] = [
+            'usia' => $count ? $clusterData->avg('usia') : 0,
+            'jumlah_anak' => $count ? $clusterData->avg('jumlah_anak') : 0,
+            'kelayakan_rumah' => $count ? $clusterData->avg('kelayakan_rumah') : 0,
+            'pendapatan' => $count ? $clusterData->avg('pendapatan_perbulan') : 0,
+        ];
+    }
+    
+    return view('dashboard', compact(
+        'totalPenerima',
+        'latestData',
+        'clusterCounts',
+        'clusterMeans'
+    ));</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>dashboard()</b> adalah fungsi yang bertugas untuk menyiapkan dan menyajikan data ringkasan terkait penerima bantuan pada halaman utama dashboard aplikasi. Fungsi ini tidak hanya menampilkan jumlah total penerima, tetapi juga menampilkan data penerima terbaru, distribusi anggota per cluster, serta rata-rata fitur penting seperti usia, jumlah anak, kelayakan rumah, dan pendapatan per cluster. Dengan demikian, fungsi ini memberikan gambaran menyeluruh kepada pengguna mengenai kondisi data penerima bantuan secara real-time. Penyajian data yang komprehensif ini sangat penting untuk mendukung proses monitoring, evaluasi, dan pengambilan keputusan berbasis data dalam aplikasi.
+                    <b>dashboard()</b> adalah fungsi yang bertugas untuk menyiapkan dan menyajikan data ringkasan terkait penerima bantuan pada halaman utama dashboard aplikasi. Fungsi ini tidak hanya menampilkan jumlah total penerima, tetapi juga menampilkan data penerima terbaru, distribusi anggota per cluster, serta rata-rata fitur penting seperti usia, jumlah anak, kelayakan rumah, dan pendapatan per cluster. Fungsi ini melakukan beberapa operasi data penting: (1) Menghitung total jumlah penerima, (2) Mengambil 5 data penerima terbaru dengan metode latest(), (3) Menambahkan informasi cluster ke setiap data penerima terbaru, (4) Mengambil distribusi jumlah anggota per cluster, dan (5) Menghitung nilai rata-rata dari semua fitur untuk setiap cluster. Dengan demikian, fungsi ini memberikan gambaran menyeluruh kepada pengguna mengenai kondisi data penerima bantuan secara real-time yang sangat penting untuk mendukung proses monitoring, evaluasi, dan pengambilan keputusan berbasis data dalam aplikasi.
                 </p>
             </div>
             <div class="mb-6">
@@ -141,11 +186,27 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function index(Request $request)
 {
-    // ... kode ...
-}</code></pre>
+    $search = $request->input('search');
+    $perPage = $request->input('perPage', 10);
+    
+    $query = Beneficiary::query();
+    
+    // Filter berdasarkan pencarian
+    if ($search) {
+        $query->where(function($q) use ($search) {
+            $q->where('nama', 'like', "%{$search}%")
+              ->orWhere('nik', 'like', "%{$search}%")
+              ->orWhere('alamat', 'like', "%{$search}%")
+              ->orWhere('no_hp', 'like', "%{$search}%");
+        });
+    }
+    
+    $penerima = $query->paginate($perPage)->withQueryString();
+    
+    return view('beneficiaries.index', compact('penerima', 'search', 'perPage'));</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>index(Request $request)</b> berfungsi untuk menampilkan daftar lengkap penerima bantuan dengan fitur pencarian dan paginasi. Fungsi ini sangat penting dalam konteks pengelolaan data skala besar, di mana pengguna dapat dengan mudah mencari data penerima berdasarkan nama, NIK, alamat, atau nomor HP. Dengan adanya fitur paginasi, tampilan data menjadi lebih terorganisir dan mudah diakses, meskipun jumlah data sangat banyak. Fungsi ini juga memastikan bahwa setiap permintaan pencarian atau perubahan jumlah data per halaman diproses secara efisien, sehingga pengalaman pengguna tetap optimal.
+                    <b>index(Request $request)</b> berfungsi untuk menampilkan daftar lengkap penerima bantuan dengan fitur pencarian dan paginasi. Fungsi ini mengambil parameter <i>search</i> dan <i>perPage</i> dari request, yang memungkinkan pengguna untuk mencari data berdasarkan kata kunci dan mengatur jumlah data yang ditampilkan per halaman. Query pencarian dirancang untuk mencari pada beberapa kolom sekaligus (nama, NIK, alamat, dan nomor HP) menggunakan klausa where dengan operator like, sehingga hasil pencarian lebih komprehensif. Fungsi ini juga menerapkan paginasi dengan metode <i>paginate()</i> yang dilengkapi dengan <i>withQueryString()</i> untuk memastikan parameter pencarian tetap terbawa saat navigasi antar halaman. Hasil query kemudian dikirim ke view untuk ditampilkan dalam format tabel yang terstruktur. Pendekatan ini sangat efektif dalam mengelola data dalam jumlah besar, memberikan pengalaman pengguna yang optimal, dan memudahkan pencarian informasi spesifik.
                 </p>
             </div>
             <div class="mb-6">
@@ -153,11 +214,10 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function create()
 {
-    // ... kode ...
-}</code></pre>
+    return view('beneficiaries.create');</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>create()</b> adalah fungsi yang bertugas untuk menampilkan formulir penambahan data penerima bantuan baru. Fungsi ini memisahkan logika tampilan dari proses bisnis, sehingga memudahkan pengelolaan dan pemeliharaan kode. Dengan menyediakan form input yang terstruktur, aplikasi memastikan bahwa proses penambahan data baru dapat dilakukan dengan mudah dan terstandarisasi, serta meminimalisir kesalahan input dari pengguna.
+                    <b>create()</b> adalah fungsi yang bertugas untuk menampilkan formulir penambahan data penerima bantuan baru. Fungsi ini mengikuti prinsip Separation of Concerns dalam Laravel, di mana logika tampilan dipisahkan dari logika pemrosesan data. Dengan hanya memanggil view 'beneficiaries.create', fungsi ini membuat kode menjadi lebih bersih, mudah dimengerti, dan mudah dikelola. View yang dimuat akan menampilkan formulir dengan berbagai field input yang diperlukan untuk membuat data penerima baru, seperti NIK, nama, alamat, nomor HP, usia, jumlah anak, kelayakan rumah, dan pendapatan perbulan. Formulir ini biasanya juga dilengkapi dengan validasi client-side untuk memberikan feedback langsung kepada pengguna saat mengisi data, sehingga meminimalisir kesalahan input sebelum data dikirim ke server.
                 </p>
             </div>
             <div class="mb-6">
@@ -165,11 +225,21 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function store(Request $request)
 {
-    // ... kode ...
-}</code></pre>
+    $validated = $request->validate([
+        'nik' => 'required',
+        'nama' => 'required',
+        'alamat' => 'required',
+        'no_hp' => 'required',
+        'usia' => 'required|integer',
+        'jumlah_anak' => 'required|integer',
+        'kelayakan_rumah' => 'required',
+        'pendapatan_perbulan' => 'required|numeric',
+    ]);
+    Beneficiary::create($validated);
+    return redirect()->route('beneficiary.index')->with('success', 'Data berhasil ditambahkan!');</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>store(Request $request)</b> merupakan fungsi yang menangani proses penyimpanan data penerima bantuan baru ke dalam database. Fungsi ini melakukan validasi ketat terhadap setiap input yang diberikan, seperti NIK, nama, alamat, nomor HP, usia, jumlah anak, kelayakan rumah, dan pendapatan. Validasi ini sangat penting untuk menjaga integritas dan kualitas data yang masuk ke sistem. Setelah data dinyatakan valid, fungsi ini akan menyimpan data ke database dan memberikan umpan balik kepada pengguna berupa pesan sukses. Proses ini memastikan bahwa hanya data yang benar-benar valid yang dapat masuk ke dalam sistem, sehingga mendukung analisis data yang akurat di tahap selanjutnya.
+                    <b>store(Request $request)</b> merupakan fungsi yang menangani proses penyimpanan data penerima bantuan baru ke dalam database. Fungsi ini menerapkan validasi yang ketat dengan metode <i>validate()</i> untuk memastikan setiap field yang diinputkan memenuhi kriteria yang ditentukan. Aturan validasi yang diterapkan meliputi: field yang wajib diisi untuk semua data, tipe data integer untuk usia dan jumlah anak, serta tipe data numeric untuk pendapatan perbulan. Setelah data tervalidasi, fungsi ini menggunakan metode <i>create()</i> pada model Beneficiary untuk menyimpan data ke database, yang memanfaatkan fitur mass assignment Laravel dengan array $validated yang sudah aman. Setelah penyimpanan berhasil, fungsi ini mengarahkan pengguna kembali ke halaman daftar penerima bantuan dengan pesan sukses. Pendekatan ini memastikan bahwa hanya data yang valid yang masuk ke sistem, serta memberikan feedback yang jelas kepada pengguna tentang hasil dari tindakan yang dilakukan.
                 </p>
             </div>
             <div class="mb-6">
@@ -177,11 +247,11 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function edit($id)
 {
-    // ... kode ...
-}</code></pre>
+    $penerima = Beneficiary::findOrFail($id);
+    return view('beneficiaries.edit', compact('penerima'));</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>edit($id)</b> adalah fungsi yang digunakan untuk menampilkan formulir pengeditan data penerima bantuan yang sudah ada. Fungsi ini mengambil data penerima berdasarkan ID yang diberikan, kemudian menampilkannya dalam form yang dapat diedit oleh pengguna. Dengan adanya fitur ini, aplikasi memberikan fleksibilitas kepada pengguna untuk memperbaiki atau memperbarui data yang mungkin mengalami perubahan atau kesalahan input sebelumnya. Proses ini sangat penting untuk menjaga akurasi dan relevansi data dalam sistem.
+                    <b>edit($id)</b> adalah fungsi yang digunakan untuk menampilkan formulir pengeditan data penerima bantuan yang sudah ada. Fungsi ini menggunakan metode <i>findOrFail()</i> untuk mencari data penerima berdasarkan ID yang diberikan, yang akan otomatis menampilkan halaman 404 Not Found jika ID tidak ditemukan. Pendekatan ini meningkatkan keamanan aplikasi dengan mencegah manipulasi ID yang tidak valid. Setelah data ditemukan, fungsi ini memanggil view 'beneficiaries.edit' dan meneruskan data penerima menggunakan helper <i>compact()</i>, sehingga view dapat mengakses dan menampilkan data tersebut dalam form. Form edit biasanya sudah terisi dengan data yang ada, memudahkan pengguna untuk melihat dan mengubah hanya bagian yang perlu diperbarui. Pendekatan ini juga mendukung pengalaman pengguna yang lebih baik dengan menerapkan prinsip "less work for users".
                 </p>
             </div>
             <div class="mb-6">
@@ -189,11 +259,22 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function update(Request $request, $id)
 {
-    // ... kode ...
-}</code></pre>
+    $validated = $request->validate([
+        'nik' => 'required',
+        'nama' => 'required',
+        'alamat' => 'required',
+        'no_hp' => 'required',
+        'usia' => 'required|integer',
+        'jumlah_anak' => 'required|integer',
+        'kelayakan_rumah' => 'required',
+        'pendapatan_perbulan' => 'required|numeric',
+    ]);
+    $penerima = Beneficiary::findOrFail($id);
+    $penerima->update($validated);
+    return redirect()->route('beneficiary.index')->with('success', 'Data berhasil diupdate!');</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>update(Request $request, $id)</b> berfungsi untuk memproses pembaruan data penerima bantuan yang sudah ada di database. Fungsi ini melakukan validasi ulang terhadap data yang diinputkan, memastikan bahwa setiap perubahan yang dilakukan tetap memenuhi standar kualitas data. Setelah data valid, fungsi ini akan memperbarui data penerima di database dan memberikan umpan balik kepada pengguna. Proses update ini sangat penting untuk menjaga konsistensi dan keakuratan data, terutama dalam aplikasi yang datanya sering mengalami perubahan.
+                    <b>update(Request $request, $id)</b> berfungsi untuk memproses pembaruan data penerima bantuan yang sudah ada di database. Mirip dengan fungsi store(), fungsi ini menerapkan validasi yang sama untuk memastikan data yang diinputkan valid dan konsisten. Setelah validasi berhasil, fungsi ini mencari data penerima dengan metode <i>findOrFail()</i> berdasarkan ID yang diberikan. Kemudian, metode <i>update()</i> dipanggil dengan data yang telah divalidasi untuk memperbarui record di database. Pendekatan ini menjaga integritas data dengan: (1) Memastikan validasi data yang konsisten antara proses create dan update, (2) Memverifikasi keberadaan data sebelum memperbarui, dan (3) Menggunakan mass assignment yang aman dengan data yang telah divalidasi. Setelah proses update selesai, pengguna diarahkan kembali ke halaman daftar dengan pesan sukses, memberikan konfirmasi visual bahwa perubahan telah berhasil disimpan.
                 </p>
             </div>
             <div class="mb-6">
@@ -201,11 +282,20 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function destroy($id)
 {
-    // ... kode ...
-}</code></pre>
+    // Cari data penerima bantuan berdasarkan ID
+    $beneficiary = Beneficiary::findOrFail($id);
+    
+    // Hapus data normalisasi dan clustering jika ada
+    $beneficiary->normalizationResult()->delete();
+    $beneficiary->clusteringResult()->delete();
+    
+    // Hapus data penerima
+    $beneficiary->delete();
+    
+    return redirect()->route('beneficiary.index')->with('success', 'Data penerima bantuan berhasil dihapus');</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>destroy($id)</b> adalah fungsi yang bertanggung jawab untuk menghapus data penerima bantuan beserta data terkait lainnya dari sistem. Fungsi ini tidak hanya menghapus data utama penerima, tetapi juga memastikan bahwa data normalisasi dan clustering yang terkait juga dihapus, sehingga tidak ada data yang tertinggal atau menjadi orphaned. Proses penghapusan yang menyeluruh ini sangat penting untuk menjaga kebersihan dan integritas database, serta mencegah terjadinya inkonsistensi data di masa mendatang.
+                    <b>destroy($id)</b> adalah fungsi yang bertanggung jawab untuk menghapus data penerima bantuan beserta data terkait lainnya dari sistem. Fungsi ini menggunakan pendekatan yang komprehensif dan terstruktur dalam proses penghapusan data. Pertama, fungsi mencari data penerima dengan metode <i>findOrFail()</i>, yang menjamin bahwa hanya ID valid yang dapat diproses. Selanjutnya, fungsi ini menghapus data-data terkait terlebih dahulu, yaitu data normalisasi dan clustering, menggunakan relationship methods yang didefinisikan dalam model Beneficiary. Pendekatan ini lebih elegan dibandingkan dengan menghapus data secara manual, karena memanfaatkan fitur Eloquent Relationships dari Laravel. Setelah data terkait dihapus, baru kemudian data utama penerima dihapus dengan metode <i>delete()</i>. Urutan penghapusan ini sangat penting untuk menjaga integritas referensial database dan mencegah terjadinya orphaned records. Setelah proses penghapusan selesai, pengguna diarahkan kembali ke halaman daftar dengan pesan sukses, memberikan konfirmasi bahwa operasi penghapusan telah berhasil dilakukan.
                 </p>
             </div>
             <div class="mb-6">
@@ -213,11 +303,20 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function exportExcel(Request $request)
 {
-    // ... kode ...
-}</code></pre>
+    $columns = $request->input('columns', [
+        'nik',
+        'nama',
+        'alamat',
+        'no_hp',
+        'usia',
+        'jumlah_anak',
+        'kelayakan_rumah',
+        'pendapatan_perbulan',
+    ]);
+    return Excel::download(new BeneficiaryExport($columns), 'beneficiary.xlsx');</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>exportExcel(Request $request)</b> merupakan fungsi yang memungkinkan pengguna untuk mengekspor data penerima bantuan ke dalam format Excel. Fitur ini sangat bermanfaat untuk keperluan analisis data lebih lanjut di luar aplikasi, seperti pembuatan laporan atau visualisasi data menggunakan perangkat lunak lain. Dengan menyediakan opsi ekspor, aplikasi mendukung kebutuhan pengguna dalam mengelola dan memanfaatkan data secara lebih fleksibel dan profesional.
+                    <b>exportExcel(Request $request)</b> merupakan fungsi yang memungkinkan pengguna untuk mengekspor data penerima bantuan ke dalam format Excel. Fungsi ini mengimplementasikan fleksibilitas dalam ekspor data dengan memungkinkan pengguna untuk memilih kolom-kolom yang ingin diekspor. Parameter <i>columns</i> dari request digunakan untuk menentukan kolom yang akan diekspor, dengan nilai default berupa array yang mencakup semua kolom utama jika tidak ada pilihan spesifik dari pengguna. Fungsi ini menggunakan paket Laravel Excel (Maatwebsite\Excel) yang populer, dengan membuat instance dari class BeneficiaryExport dan meneruskan kolom yang dipilih ke constructor-nya. Dengan metode <i>download()</i>, file Excel akan langsung diunduh oleh browser dengan nama 'beneficiary.xlsx'. Pendekatan ini sangat efisien dalam menyediakan data untuk analisis eksternal, pelaporan, atau backup data. Class BeneficiaryExport sendiri bertanggung jawab untuk mengatur format dan struktur data dalam file Excel yang dihasilkan, memastikan bahwa data yang diekspor terstruktur dengan baik dan mudah dibaca.
                 </p>
             </div>
             <div class="mb-6">
@@ -225,11 +324,14 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function importExcel(Request $request)
 {
-    // ... kode ...
-}</code></pre>
+    $request->validate([
+        'file' => 'required|mimes:xlsx,xls'
+    ]);
+    Excel::import(new BeneficiaryImport, $request->file('file'));
+    return redirect()->route('beneficiary.index')->with('success', 'Data berhasil diimport!');</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>importExcel(Request $request)</b> adalah fungsi yang memudahkan pengguna untuk menambahkan banyak data penerima bantuan sekaligus melalui file Excel. Fungsi ini melakukan validasi terhadap file yang diunggah, memastikan format dan isi file sesuai dengan standar yang ditetapkan. Dengan fitur impor ini, proses input data menjadi jauh lebih efisien, terutama ketika harus menangani data dalam jumlah besar. Hal ini sangat mendukung efisiensi operasional dan mempercepat proses digitalisasi data penerima bantuan.
+                    <b>importExcel(Request $request)</b> adalah fungsi yang memudahkan pengguna untuk menambahkan banyak data penerima bantuan sekaligus melalui file Excel. Fungsi ini dimulai dengan validasi file yang diunggah, memastikan bahwa file tersebut ada (required) dan merupakan file Excel dengan ekstensi xlsx atau xls. Validasi ini penting untuk mencegah pengunggahan file yang tidak valid atau potensial berbahaya. Setelah validasi berhasil, fungsi menggunakan paket Laravel Excel dengan metode <i>import()</i> untuk memproses file, dengan membuat instance dari class BeneficiaryImport yang bertanggung jawab untuk membaca dan memproses data dari file Excel. Class BeneficiaryImport biasanya mengimplementasikan logika untuk memvalidasi, memetakan, dan menyimpan data dari file Excel ke dalam database. Setelah proses import selesai, pengguna diarahkan kembali ke halaman daftar penerima dengan pesan sukses. Fitur impor ini sangat berharga dalam situasi di mana data perlu dimigrasikan dari sumber lain atau saat perlu menambahkan banyak data sekaligus, menghemat waktu dan mengurangi potensi kesalahan input manual.
                 </p>
             </div>
             <div class="mb-6">
@@ -237,11 +339,19 @@
                 <div class="bg-gray-50 p-4 rounded-lg mb-3">
                     <pre><code class="language-php">public function bulkDelete(Request $request)
 {
-    // ... kode ...
-}</code></pre>
+    if ($request->input('select_all') == 1) {
+        Beneficiary::query()->delete();
+        return redirect()->route('beneficiary.index')->with('success', 'Semua data berhasil dihapus!');
+    }
+    $ids = $request->input('ids', []);
+    if (!empty($ids)) {
+        Beneficiary::whereIn('id', $ids)->delete();
+        return redirect()->route('beneficiary.index')->with('success', 'Data terpilih berhasil dihapus!');
+    }
+    return redirect()->route('beneficiary.index')->with('success', 'Tidak ada data yang dipilih.');</code></pre>
                 </div>
                 <p class="mb-4">
-                    <b>bulkDelete(Request $request)</b> adalah fungsi yang dirancang untuk menghapus banyak data penerima bantuan sekaligus, baik seluruh data maupun data terpilih. Fitur ini sangat berguna dalam manajemen data massal, misalnya ketika perlu melakukan reset data atau membersihkan data yang tidak lagi relevan. Dengan adanya fungsi ini, proses penghapusan data menjadi lebih cepat, efisien, dan terkontrol, sehingga mendukung pengelolaan database yang sehat dan terstruktur.
+                    <b>bulkDelete(Request $request)</b> adalah fungsi yang dirancang untuk menghapus banyak data penerima bantuan sekaligus, baik seluruh data maupun data terpilih. Fungsi ini menangani dua skenario utama: (1) Penghapusan semua data, yang ditandai dengan parameter <i>select_all</i> bernilai 1, dan (2) Penghapusan data tertentu berdasarkan ID yang dipilih. Untuk skenario pertama, fungsi menggunakan Eloquent Query Builder dengan metode <i>query()->delete()</i> untuk menghapus semua record dari tabel beneficiaries. Untuk skenario kedua, fungsi mengambil array ID dari request, memverifikasi bahwa array tersebut tidak kosong, kemudian menggunakan metode <i>whereIn('id', $ids)->delete()</i> untuk menghapus hanya record dengan ID yang dipilih. Jika tidak ada ID yang dipilih, fungsi mengembalikan pesan yang sesuai. Pendekatan ini memberikan fleksibilitas dalam manajemen data massal, memungkinkan pengguna untuk melakukan operasi batch yang efisien tanpa harus menghapus data satu per satu. Perlu dicatat bahwa fungsi ini hanya menghapus data utama penerima, tidak secara otomatis menghapus data terkait seperti pada fungsi destroy(), sehingga sebaiknya digunakan dengan hati-hati untuk mencegah orphaned records.
                 </p>
             </div>
         </div>
