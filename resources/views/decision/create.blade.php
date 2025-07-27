@@ -62,10 +62,20 @@
                 </div>
                 
                 <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2" for="excluded_decisions">Kecualikan Penerima dari Bantuan Sebelumnya</label>
+                    <select id="excluded_decisions" name="excluded_decisions[]" multiple class="tom-select w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        @foreach($decisionResults as $decision)
+                            <option value="{{ $decision->id }}">{{ $decision->title }}</option>
+                        @endforeach
+                    </select>
+                    <p class="text-xs text-gray-500 mt-1">Pilih satu atau lebih keputusan/bantuan yang ingin dikecualikan.</p>
+                </div>
+                
+                <div>
                     <label class="block text-sm font-medium text-gray-700 mb-2" for="cluster">Pilih Prioritas<span class="text-red-500">*</span></label>
                     <select id="cluster" name="cluster" class="w-full border border-gray-300 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-indigo-500 @error('cluster') border-red-500 @enderror" required>
                         <option value="">Pilih Prioritas</option>
-                        <option value="all" {{ old('cluster') == 'all' ? 'selected' : '' }}>Sesuai Prioritas</option>
+                        <option value="all" {{ old('cluster', 'all') == 'all' ? 'selected' : '' }}>Sesuai Prioritas</option>
                         @foreach($clusterCounts as $cluster => $count)
                             @php
                                 $prioritas = $rankMap[$cluster] ?? '-';
@@ -117,3 +127,37 @@
     </div>
 </div>
 @endsection 
+
+@push('scripts')
+<style>
+.ts-control {
+    min-height: 44px !important;
+    padding-top: 0.625rem !important;
+    padding-bottom: 0.625rem !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+    border-radius: 0.5rem !important;
+    border-color: #d1d5db !important;
+    font-size: 1rem !important;
+}
+.ts-dropdown {
+    z-index: 9999 !important;
+    position: absolute !important;
+    background: #fff !important;
+    box-shadow: 0 4px 24px 0 rgba(0,0,0,0.10);
+}
+.bg-gray-50, .rounded-lg, .shadow-md, .border {
+    overflow: visible !important;
+}
+</style>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    new TomSelect('.tom-select', {
+        plugins: ['remove_button'],
+        placeholder: 'Pilih bantuan yang ingin dikecualikan',
+        persist: false,
+        create: false
+    });
+});
+</script>
+@endpush 

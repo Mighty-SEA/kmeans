@@ -71,11 +71,22 @@ class DecisionController extends Controller
             $rankMap[$idx] = $rank++;
         }
         // Ambil semua decision results untuk ditampilkan
-        $decisionResults = DecisionResult::orderBy('created_at', 'desc')->get();
+        $decisionResults = DecisionResult::orderBy('created_at', 'asc')->get();
+        $allBeneficiaryIds = ClusteringResult::pluck('beneficiary_id')->toArray();
+        $usedBeneficiaryIds = [];
+        $decisionResultsWithTotal = $decisionResults->map(function($result) use (&$usedBeneficiaryIds, $allBeneficiaryIds) {
+            // Ambil semua beneficiary yang sudah pernah dapat bantuan sebelum keputusan ini
+            $currentBeneficiaryIds = $result->items()->pluck('beneficiary_id')->toArray();
+            $available = array_diff($allBeneficiaryIds, $usedBeneficiaryIds);
+            $result->total_available = count($available);
+            // Setelah ini, beneficiary yang sudah dapat bantuan ditandai
+            $usedBeneficiaryIds = array_merge($usedBeneficiaryIds, $currentBeneficiaryIds);
+            return $result;
+        });
         
         return view('decision.index', [
             'clusterCounts' => $clusterCounts,
-            'decisionResults' => $decisionResults,
+            'decisionResults' => $decisionResultsWithTotal,
             'clusterMeans' => $clusterMeans,
             'avgSilhouettes' => $avgSilhouettes,
             'rankMap' => $rankMap
@@ -140,7 +151,8 @@ class DecisionController extends Controller
 
         return view('decision.create', [
             'clusterCounts' => $clusterCounts,
-            'rankMap' => $rankMap
+            'rankMap' => $rankMap,
+            'decisionResults' => \App\Models\DecisionResult::all(), // Tambahkan baris ini
         ]);
     }
     
@@ -155,11 +167,21 @@ class DecisionController extends Controller
             'cluster' => 'required',
             'count' => 'required|integer|min:1',
             'notes' => 'nullable|string',
+            'excluded_decisions' => 'nullable|array', // validasi baru
+            'excluded_decisions.*' => 'integer|exists:decision_results,id',
         ]);
 
         $cluster = $validated['cluster'];
         $totalNeeded = $validated['count'];
         $beneficiaryIds = [];
+        $excludedBeneficiaryIds = [];
+        // Ambil semua beneficiary_id dari keputusan yang dikecualikan
+        if (!empty($validated['excluded_decisions'])) {
+            $excludedBeneficiaryIds = \App\Models\DecisionResultItem::whereIn('decision_result_id', $validated['excluded_decisions'])
+                ->pluck('beneficiary_id')
+                ->unique()
+                ->toArray();
+        }
 
         if ($cluster === 'all') {
             // Hitung prioritas (rankMap) seperti di create()
@@ -207,6 +229,7 @@ class DecisionController extends Controller
                 if ($remaining <= 0) break;
                 $ids = ClusteringResult::where('cluster', $cl)
                     ->whereNotIn('beneficiary_id', $beneficiaryIds)
+                    ->whereNotIn('beneficiary_id', $excludedBeneficiaryIds) // filter baru
                     ->inRandomOrder()
                     ->limit($remaining)
                     ->pluck('beneficiary_id')
@@ -222,11 +245,14 @@ class DecisionController extends Controller
             if (!is_numeric($cluster) || !ClusteringResult::where('cluster', $cluster)->exists()) {
                 return back()->withErrors(['cluster' => 'Cluster tidak valid'])->withInput();
             }
-            $clusterCount = ClusteringResult::where('cluster', $cluster)->count();
+            $clusterCount = ClusteringResult::where('cluster', $cluster)
+                ->whereNotIn('beneficiary_id', $excludedBeneficiaryIds) // filter baru
+                ->count();
             if ($totalNeeded > $clusterCount) {
                 return back()->withErrors(['count' => "Jumlah yang dipilih melebihi jumlah anggota dalam cluster ({$clusterCount})"])->withInput();
             }
             $beneficiaryIds = ClusteringResult::where('cluster', $cluster)
+                ->whereNotIn('beneficiary_id', $excludedBeneficiaryIds) // filter baru
                 ->inRandomOrder()
                 ->limit($totalNeeded)
                 ->pluck('beneficiary_id')
@@ -266,7 +292,19 @@ class DecisionController extends Controller
     public function show($id)
     {
         $decisionResult = DecisionResult::with('beneficiaries')->findOrFail($id);
-        
+        // Hitung total_available seperti di index
+        $allBeneficiaryIds = \App\Models\ClusteringResult::pluck('beneficiary_id')->toArray();
+        $usedBeneficiaryIds = [];
+        $decisionResults = DecisionResult::orderBy('created_at', 'asc')->get();
+        foreach ($decisionResults as $result) {
+            $currentBeneficiaryIds = $result->items()->pluck('beneficiary_id')->toArray();
+            $available = array_diff($allBeneficiaryIds, $usedBeneficiaryIds);
+            if ($result->id == $decisionResult->id) {
+                $decisionResult->total_available = count($available);
+                break;
+            }
+            $usedBeneficiaryIds = array_merge($usedBeneficiaryIds, $currentBeneficiaryIds);
+        }
         return view('decision.show', [
             'decisionResult' => $decisionResult
         ]);

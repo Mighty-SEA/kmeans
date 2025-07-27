@@ -173,7 +173,9 @@
                                     </span>
                                 @endif
                             </td>
-                            <td class="px-6 py-4 text-sm text-gray-700">{{ $result->count }} orang</td>
+                            <td class="px-6 py-4 text-sm text-gray-700">
+                                {{ $result->count }} orang dari {{ $result->total_available }}
+                            </td>
                             <td class="px-6 py-4 text-sm text-gray-700">{{ $result->created_at->format('d M Y, H:i') }}</td>
                             <td class="px-6 py-4 text-sm text-center">
                                 <div class="flex justify-center space-x-2">

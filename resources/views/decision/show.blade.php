@@ -50,16 +50,31 @@
                         <p class="flex items-center">
                             @php
                                 $colors = ['red', 'blue', 'green'];
-                                $color = $colors[$decisionResult->cluster] ?? 'gray';
                             @endphp
-                            <span class="px-3 py-1 text-xs font-semibold rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
-                                Cluster {{ $decisionResult->cluster + 1 }}
-                            </span>
+                            @if($decisionResult->cluster == -1)
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    Cluster
+                                    @php
+                                        $usedClusters = \App\Models\ClusteringResult::whereIn('beneficiary_id',
+                                            \App\Models\DecisionResultItem::where('decision_result_id', $decisionResult->id)->pluck('beneficiary_id')
+                                        )->pluck('cluster')->unique()->sortDesc()->values();
+                                        $label = $usedClusters->map(fn($c) => $c+1)->implode(', ');
+                                    @endphp
+                                    {{ ' ' . $label }}
+                                </span>
+                            @else
+                                @php
+                                    $color = $colors[$decisionResult->cluster] ?? 'gray';
+                                @endphp
+                                <span class="px-3 py-1 text-xs font-semibold rounded-full bg-{{ $color }}-100 text-{{ $color }}-800">
+                                    Cluster {{ $decisionResult->cluster + 1 }}
+                                </span>
+                            @endif
                         </p>
                     </div>
                     <div>
                         <h5 class="text-sm font-medium text-gray-500">Jumlah Penerima</h5>
-                        <p class="text-base">{{ $decisionResult->count }} orang</p>
+                        <p class="text-base">{{ $decisionResult->count }} orang dari {{ $decisionResult->total_available }}</p>
                     </div>
                 </div>
                 
@@ -158,7 +173,7 @@
         
         @if($decisionResult->beneficiaries->count() > 0)
         <div class="mt-4 text-sm text-gray-500">
-            Total {{ $decisionResult->beneficiaries->count() }} penerima ditampilkan
+            Total {{ $decisionResult->beneficiaries->count() }} penerima dari {{ $decisionResult->total_available }} yang ditampilkan
         </div>
         @endif
     </div>
