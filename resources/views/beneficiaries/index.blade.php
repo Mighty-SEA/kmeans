@@ -12,6 +12,48 @@
         </div>
     @endif
     
+    @if(session('error'))
+        <div class="mb-6 p-4 rounded-lg bg-red-100 text-red-800 border border-red-200 flex items-center">
+            <i class="fas fa-exclamation-circle mr-2 text-xl text-red-600"></i>
+            <span class="text-base">{{ session('error') }}</span>
+        </div>
+    @endif
+    
+    @if(session('import_errors'))
+        <div class="mb-6 p-4 rounded-lg bg-yellow-100 text-yellow-800 border border-yellow-200">
+            <div class="flex items-center mb-3">
+                <i class="fas fa-exclamation-triangle mr-2 text-xl text-yellow-600"></i>
+                <span class="text-base font-medium">Detail Error Import Excel</span>
+                <button onclick="toggleErrorDetails()" class="ml-auto text-yellow-600 hover:text-yellow-800">
+                    <i id="errorToggleIcon" class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div id="errorDetails" class="hidden">
+                <div class="max-h-60 overflow-y-auto bg-white rounded border border-yellow-300 p-3">
+                    <ul class="space-y-1 text-sm">
+                        @foreach(session('import_errors') as $error)
+                            <li class="flex items-start">
+                                <i class="fas fa-times-circle text-red-500 mr-2 mt-0.5 flex-shrink-0"></i>
+                                <span>{{ $error }}</span>
+                            </li>
+                        @endforeach
+                    </ul>
+                </div>
+                <div class="mt-3 text-sm">
+                    <p><strong>Petunjuk:</strong></p>
+                    <ul class="list-disc list-inside text-yellow-700 mt-1 space-y-1">
+                        <li>Pastikan semua kolom wajib diisi</li>
+                        <li>NIK harus unik (tidak boleh duplikat)</li>
+                        <li>Usia harus antara 1-120 tahun</li>
+                        <li>Jumlah anak harus antara 0-20</li>
+                        <li>Kelayakan rumah harus antara 0-5 (0=tidak punya rumah/ngontrak)</li>
+                        <li>Pendapatan tidak boleh negatif</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    @endif
+    
     <div class="flex flex-col md:flex-row justify-between items-center mb-8">
         <div class="mb-4 md:mb-0">
             <h3 class="text-xl font-medium text-gray-700">Daftar Semua Penerima Bantuan</h3>
@@ -214,6 +256,14 @@
 </div>
 
 <script>
+    function toggleErrorDetails() {
+        const errorDetails = document.getElementById('errorDetails');
+        const errorToggleIcon = document.getElementById('errorToggleIcon');
+        errorDetails.classList.toggle('hidden');
+        errorToggleIcon.classList.toggle('fa-chevron-down');
+        errorToggleIcon.classList.toggle('fa-chevron-up');
+    }
+
     function updateBulkDeleteUI() {
         const checkboxes = document.querySelectorAll('input[name="ids[]"]');
         const checked = document.querySelectorAll('input[name="ids[]"]:checked');

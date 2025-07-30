@@ -63,3 +63,19 @@ test('user dapat mengupdate avatar', function () {
     // Pastikan file avatar ada di storage
     Storage::disk('public')->assertExists($user->avatar);
 }); 
+
+test('validasi gagal saat update profile', function () {
+    $user = \App\Models\User::factory()->create();
+    $response = $this->actingAs($user)->put('/profile', ['name' => '']);
+    $response->assertSessionHasErrors();
+});
+
+test('validasi gagal saat update password', function () {
+    $user = \App\Models\User::factory()->create();
+    $response = $this->actingAs($user)->put('/profile/password', [
+        'current_password' => '',
+        'password' => 'new',
+        'password_confirmation' => 'beda',
+    ]);
+    $response->assertSessionHasErrors();
+}); 

@@ -79,3 +79,88 @@ test('user dapat menghapus beneficiary', function () {
         'id' => $beneficiary->id,
     ]);
 }); 
+
+test('user dapat mencari beneficiary', function () {
+    $user = User::factory()->create();
+    Beneficiary::factory()->create(['nama' => 'CariNama']);
+    $this->actingAs($user)->get('/beneficiary?search=CariNama')
+        ->assertSee('CariNama');
+});
+
+test('user dapat reset pencarian beneficiary', function () {
+    $user = User::factory()->create();
+    Beneficiary::factory()->create(['nama' => 'NamaReset']);
+    $response = $this->actingAs($user)->get('/beneficiary?search=NamaReset');
+    $response->assertSee('NamaReset');
+    $response = $this->actingAs($user)->get('/beneficiary');
+    $response->assertSee('NamaReset');
+});
+
+test('user dapat mengubah jumlah data per halaman', function () {
+    $user = User::factory()->create();
+    Beneficiary::factory(15)->create();
+    $response = $this->actingAs($user)->get('/beneficiary?perPage=10');
+    $response->assertSee('data per halaman');
+});
+
+test('user dapat bulk delete beneficiary', function () {
+    $user = User::factory()->create();
+    $beneficiaries = Beneficiary::factory(3)->create();
+    $ids = $beneficiaries->pluck('id')->toArray();
+    $response = $this->actingAs($user)->delete('/beneficiary-bulk-delete', [
+        'ids' => $ids
+    ]);
+    $response->assertRedirect('/beneficiary');
+    foreach ($ids as $id) {
+        $this->assertDatabaseMissing('beneficiaries', ['id' => $id]);
+    }
+});
+
+test('user dapat export data beneficiary ke Excel', function () {
+    $user = User::factory()->create();
+    Beneficiary::factory()->create();
+    $response = $this->actingAs($user)->post('/beneficiary-export', [
+        'columns' => ['nama', 'nik']
+    ]);
+    $response->assertStatus(200);
+    $response->assertHeader('content-disposition');
+});
+
+test('user dapat import data beneficiary dari Excel', function () {
+    $user = User::factory()->create();
+    $dummyPath = base_path('tests/Feature/dummy.xlsx');
+    if (!file_exists($dummyPath)) {
+        \PhpOffice\PhpSpreadsheet\IOFactory::createWriter(new \PhpOffice\PhpSpreadsheet\Spreadsheet(), 'Xlsx')->save($dummyPath);
+    }
+    $file = new \Illuminate\Http\UploadedFile($dummyPath, 'dummy.xlsx', null, null, true);
+    $response = $this->actingAs($user)->post('/beneficiary-import', [
+        'file' => $file
+    ]);
+    $response->assertRedirect('/beneficiary');
+});
+
+test('user dapat mengakses halaman create beneficiary', function () {
+    $user = User::factory()->create();
+    $response = $this->actingAs($user)->get('/beneficiary/create');
+    $response->assertStatus(200);
+});
+
+test('user dapat mengakses halaman edit beneficiary', function () {
+    $user = User::factory()->create();
+    $beneficiary = Beneficiary::factory()->create();
+    $response = $this->actingAs($user)->get("/beneficiary/{$beneficiary->id}/edit");
+    $response->assertStatus(200);
+});
+
+test('validasi gagal saat tambah beneficiary', function () {
+    $user = User::factory()->create();
+    $response = $this->actingAs($user)->post('/beneficiary', []);
+    $response->assertSessionHasErrors();
+});
+
+test('validasi gagal saat edit beneficiary', function () {
+    $user = User::factory()->create();
+    $beneficiary = Beneficiary::factory()->create();
+    $response = $this->actingAs($user)->put("/beneficiary/{$beneficiary->id}", ['nama' => '']);
+    $response->assertSessionHasErrors();
+}); 

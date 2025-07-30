@@ -85,3 +85,23 @@ test('user dapat menghapus decision', function () {
         'id' => $decisionResult->id,
     ]);
 }); 
+
+test('user dapat mengakses halaman create decision', function () {
+    $user = \App\Models\User::factory()->create();
+    $beneficiaries = \App\Models\Beneficiary::factory(3)->create();
+    foreach ($beneficiaries as $index => $beneficiary) {
+        \App\Models\ClusteringResult::create([
+            'beneficiary_id' => $beneficiary->id,
+            'cluster' => $index % 3,
+            'silhouette' => 0.75,
+        ]);
+    }
+    $response = $this->actingAs($user)->get('/decision/create');
+    $response->assertStatus(200);
+});
+
+test('validasi gagal saat create decision', function () {
+    $user = \App\Models\User::factory()->create();
+    $response = $this->actingAs($user)->post('/decision', []);
+    $response->assertSessionHasErrors();
+}); 

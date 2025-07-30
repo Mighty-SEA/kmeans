@@ -94,14 +94,36 @@ class BeneficiaryController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'nik' => 'required',
-            'nama' => 'required',
+            'nik' => 'required|unique:beneficiaries,nik',
+            'nama' => 'required|max:255',
             'alamat' => 'required',
             'no_hp' => 'required',
-            'usia' => 'required|integer',
-            'jumlah_anak' => 'required|integer',
-            'kelayakan_rumah' => 'required',
-            'pendapatan_perbulan' => 'required|numeric',
+            'usia' => 'required|integer|min:1|max:120',
+            'jumlah_anak' => 'required|integer|min:0|max:20',
+            'kelayakan_rumah' => 'required|numeric|min:0|max:5',
+            'pendapatan_perbulan' => 'required|numeric|min:0',
+        ], [
+            'nik.required' => 'NIK tidak boleh kosong',
+            'nik.unique' => 'NIK sudah terdaftar',
+            'nama.required' => 'Nama tidak boleh kosong',
+            'nama.max' => 'Nama maksimal 255 karakter',
+            'alamat.required' => 'Alamat tidak boleh kosong',
+            'no_hp.required' => 'No HP tidak boleh kosong',
+            'usia.required' => 'Usia tidak boleh kosong',
+            'usia.integer' => 'Usia harus berupa angka',
+            'usia.min' => 'Usia minimal 1 tahun',
+            'usia.max' => 'Usia maksimal 120 tahun',
+            'jumlah_anak.required' => 'Jumlah anak tidak boleh kosong',
+            'jumlah_anak.integer' => 'Jumlah anak harus berupa angka',
+            'jumlah_anak.min' => 'Jumlah anak minimal 0',
+            'jumlah_anak.max' => 'Jumlah anak maksimal 20',
+            'kelayakan_rumah.required' => 'Kelayakan rumah tidak boleh kosong',
+            'kelayakan_rumah.numeric' => 'Kelayakan rumah harus berupa angka',
+            'kelayakan_rumah.min' => 'Kelayakan rumah minimal 0 (0=tidak punya rumah/ngontrak, 1-5=tingkat kelayakan)',
+            'kelayakan_rumah.max' => 'Kelayakan rumah maksimal 5',
+            'pendapatan_perbulan.required' => 'Pendapatan per bulan tidak boleh kosong',
+            'pendapatan_perbulan.numeric' => 'Pendapatan per bulan harus berupa angka',
+            'pendapatan_perbulan.min' => 'Pendapatan per bulan tidak boleh negatif',
         ]);
         Beneficiary::create($validated);
         return redirect()->route('beneficiary.index')->with('success', 'Data berhasil ditambahkan!');
@@ -116,14 +138,36 @@ class BeneficiaryController extends Controller
     public function update(Request $request, $id)
     {
         $validated = $request->validate([
-            'nik' => 'required',
-            'nama' => 'required',
+            'nik' => 'required|unique:beneficiaries,nik,' . $id,
+            'nama' => 'required|max:255',
             'alamat' => 'required',
             'no_hp' => 'required',
-            'usia' => 'required|integer',
-            'jumlah_anak' => 'required|integer',
-            'kelayakan_rumah' => 'required',
-            'pendapatan_perbulan' => 'required|numeric',
+            'usia' => 'required|integer|min:1|max:120',
+            'jumlah_anak' => 'required|integer|min:0|max:20',
+            'kelayakan_rumah' => 'required|numeric|min:0|max:5',
+            'pendapatan_perbulan' => 'required|numeric|min:0',
+        ], [
+            'nik.required' => 'NIK tidak boleh kosong',
+            'nik.unique' => 'NIK sudah terdaftar',
+            'nama.required' => 'Nama tidak boleh kosong',
+            'nama.max' => 'Nama maksimal 255 karakter',
+            'alamat.required' => 'Alamat tidak boleh kosong',
+            'no_hp.required' => 'No HP tidak boleh kosong',
+            'usia.required' => 'Usia tidak boleh kosong',
+            'usia.integer' => 'Usia harus berupa angka',
+            'usia.min' => 'Usia minimal 1 tahun',
+            'usia.max' => 'Usia maksimal 120 tahun',
+            'jumlah_anak.required' => 'Jumlah anak tidak boleh kosong',
+            'jumlah_anak.integer' => 'Jumlah anak harus berupa angka',
+            'jumlah_anak.min' => 'Jumlah anak minimal 0',
+            'jumlah_anak.max' => 'Jumlah anak maksimal 20',
+            'kelayakan_rumah.required' => 'Kelayakan rumah tidak boleh kosong',
+            'kelayakan_rumah.numeric' => 'Kelayakan rumah harus berupa angka',
+            'kelayakan_rumah.min' => 'Kelayakan rumah minimal 0 (0=tidak punya rumah/ngontrak, 1-5=tingkat kelayakan)',
+            'kelayakan_rumah.max' => 'Kelayakan rumah maksimal 5',
+            'pendapatan_perbulan.required' => 'Pendapatan per bulan tidak boleh kosong',
+            'pendapatan_perbulan.numeric' => 'Pendapatan per bulan harus berupa angka',
+            'pendapatan_perbulan.min' => 'Pendapatan per bulan tidak boleh negatif',
         ]);
         $penerima = Beneficiary::findOrFail($id);
         $penerima->update($validated);
@@ -165,8 +209,41 @@ class BeneficiaryController extends Controller
         $request->validate([
             'file' => 'required|mimes:xlsx,xls'
         ]);
-        Excel::import(new BeneficiaryImport, $request->file('file'));
-        return redirect()->route('beneficiary.index')->with('success', 'Data berhasil diimport!');
+
+        $import = new BeneficiaryImport;
+        
+        try {
+            Excel::import($import, $request->file('file'));
+            
+            // Jika ada error atau failure
+            if ($import->hasErrors()) {
+                $errorDetails = [];
+                
+                // Collect validation failures
+                foreach ($import->getFailures() as $failure) {
+                    $rowNumber = $failure['row'];
+                    foreach ($failure['errors'] as $error) {
+                        $errorDetails[] = "Baris {$rowNumber}: {$error}";
+                    }
+                }
+                
+                // Collect general errors
+                foreach ($import->getErrors() as $error) {
+                    $errorDetails[] = "Baris {$error['row']}: {$error['error']}";
+                }
+                
+                return redirect()->route('beneficiary.index')
+                    ->with('import_errors', $errorDetails)
+                    ->with('error', 'Import selesai dengan beberapa error. Total ' . count($errorDetails) . ' baris gagal diimport.');
+            }
+            
+            return redirect()->route('beneficiary.index')
+                ->with('success', 'Data berhasil diimport tanpa error!');
+                
+        } catch (\Exception $e) {
+            return redirect()->route('beneficiary.index')
+                ->with('error', 'Terjadi kesalahan saat import: ' . $e->getMessage());
+        }
     }
 
     public function bulkDelete(Request $request)
